@@ -1,0 +1,21 @@
+[package]
+name = "unique-pointer"
+version = "0.0.0"
+edition = "2024"
+description = "Provides an experimental data structure `UniquePointer` that makes extensive use of `unsafe` rust to provide a shared pointer across other data structures."
+documentation = "https://docs.rs/unique-pointer"
+readme = "README.md"
+homepage = "https://github.com/gabrielfalcao/unique-pointer"
+license = "MIT"
+
+[features]
+debug = []
+
+[lib]
+name = "unique_pointer"
+path = "src/lib.rs"
+bench = false
+
+
+[dev-dependencies]
+k9 = "0.12.0"

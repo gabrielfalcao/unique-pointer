@@ -1,0 +1,17 @@
+[package]
+name = "unique-pointer-example-binary-tree"
+version = "0.0.0"
+edition = "2024"
+readme = "README.md"
+homepage = "https://github.com/gabrielfalcao/unique-pointer"
+license = "MIT"
+
+[lib]
+name = "cons_cell"
+path = "src/lib.rs"
+
+[dependencies]
+unique-pointer = {path = "../../"}
+
+[dev-dependencies]
+k9 = "0.12.0"
