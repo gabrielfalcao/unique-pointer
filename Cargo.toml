@@ -6,7 +6,10 @@ description = "Provides an experimental data structure `UniquePointer` that make
 documentation = "https://docs.rs/unique-pointer"
 readme = "README.md"
 homepage = "https://github.com/gabrielfalcao/unique-pointer"
-license = "MIT"
+license = "MIT OR Apache-2.0"
+keywords = ["experimental", "rust", "memory", "library"]
+authors = ["Gabriel DeMoura <gabrielteratos@gmail.com>"]
+categories = ["algorithms", "data-structures"]
 
 [features]
 debug = []
