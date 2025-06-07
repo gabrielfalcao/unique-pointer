@@ -10,7 +10,59 @@ computer science students to implement data structures such as
 linked-lists and binary trees in rust while not spending much time
 tinkering with rust lifetimes.
 
-# Examples
+
+## Example
+
+```rust
+#[derive(Clone, Debug)]
+pub struct LinkedList<T: Debug> {
+    pub item: T,
+    pub next: UniquePointer<LinkedList<T>>,
+}
+impl<T: Debug> LinkedList<T> {
+    pub fn new(item: T) -> LinkedList<T> {
+        LinkedList {
+            item,
+            next: UniquePointer::null(),
+        }
+    }
+
+    pub fn append(&mut self, value: T) -> LinkedList<T> {
+        let next = LinkedList::new(value);
+        self.next.write_ref(&next);
+        next
+    }
+
+    pub fn next(&self) -> Option<&LinkedList<T>> {
+        self.next.as_ref()
+    }
+
+    pub fn len(&self) -> usize {
+        let mut length = 1;
+
+        if let Some(next) = self.next() {
+            length += 1;
+            length += next.len();
+        }
+        length
+    }
+}
+
+#[test]
+fn test_linked_list() {
+    let mut a = LinkedList::new("a");
+    let mut b = a.append("b");
+    let c = b.append("c");
+
+    assert_equal!(a.len(), 3);
+}
+```
+
+
+
+
+
+## More Examples
 
 - [binary-tree](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree)
   - [implementation](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree/src/node.rs)
