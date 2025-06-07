@@ -219,25 +219,37 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
         back_node
     }
 
-    /// calls [`copy_from_ref`] to create a *read-only* `UniquePointer` from a
+    /// calls [`UniquePointer::copy_from_ref`] to create a *read-only* `UniquePointer` from a
     /// reference of `T`, useful for iterating over self-referential
     /// data structures.
     ///
     /// Example:
     ///
     /// ```
-
+    /// use unique_pointer::UniquePointer;
+    ///
+    /// pub struct Data<'r> {
+    ///     value: &'r String,
+    /// }
+    /// impl <'r> Data<'r> {
+    ///     pub fn new<T: std::fmt::Display>(value: T) -> Data<'r> {
+    ///         let value = value.to_string();
+    ///         Data {
+    ///             value: UniquePointer::read_only(&value).extend_lifetime()
+    ///         }
+    ///     }
+    /// }
     /// ```
     pub fn read_only(data: &T) -> UniquePointer<T> {
         UniquePointer::copy_from_ref(data, 1)
     }
 
-    /// calls [`copy_from_mut_ptr`] to create a *read-only*
+    /// calls [`UniquePointer::copy_from_mut_ptr`] to create a *read-only*
     /// `UniquePointer` from a reference of `T`, useful for
     /// iterating over self-referential data structures that use
     /// [`RefCounter`] to count refs.
     ///
-    /// Note: [`read_only`] might be a better alternative when `T` is
+    /// Note: [`UniquePointer::read_only`] might be a better alternative when `T` is
     /// a data structure that does not use [`RefCounter`].
     pub fn copy_from_ref(data: &T, refs: usize) -> UniquePointer<T> {
         let ptr = (data as *const T).cast_mut();
@@ -249,7 +261,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// self-referential data structures that use [`RefCounter`] to
     /// count refs.
     ///
-    /// Note: [`read_only`] might be a better alternative when `T` is
+    /// Note: [`UniquePointer::read_only`] might be a better alternative when `T` is
     /// a data structure that does not use [`RefCounter`].
     pub fn copy_from_mut_ptr(ptr: *mut T, refs: usize) -> UniquePointer<T> {
         let addr = UniquePointer::provenance_of_mut_ptr(ptr);
@@ -288,17 +300,17 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 
     /// returns true if the `UniquePointer` is not
-    /// NULL. [`is_not_null`] is a idiomatic shortcut to negating a call
-    /// to [`is_null`] such that the negation is less likely to be
-    /// clearly visible.
+    /// NULL. [`UniquePointer::is_not_null`] is a idiomatic shortcut
+    /// to negating a call to [`UniquePointer::is_null`] such that the
+    /// negation is less likely to be clearly visible.
     pub fn is_not_null(&self) -> bool {
         !self.is_null()
     }
 
     /// returns true if the `UniquePointer` is not a
-    /// copy. [`is_not_copy`] is a idiomatic shortcut to negating a call
-    /// to [`is_copy`] such that the negation is less likely to be
-    /// clearly visible.
+    /// copy. [`UniquePointer::is_not_copy`] is a idiomatic shortcut
+    /// to negating a call to [`UniquePointer::is_copy`] such that the
+    /// negation is less likely to be clearly visible.
     pub fn is_not_copy(&self) -> bool {
         !self.is_copy
     }
