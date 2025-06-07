@@ -64,13 +64,13 @@ fn test_linked_list() {
 
 ## More Examples
 
-- [binary-tree](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree)
-  - [implementation](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree/src/node.rs)
-  - [node tests](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree/tests/test_node.rs)
-  - [binary tree tests](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/binary-tree/tests/test_binary_tree.rs)
+- [binary-tree](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/binary-tree)
+  - [implementation](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/binary-tree/src/node.rs)
+  - [node tests](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/binary-tree/tests/test_node.rs)
+  - [binary tree tests](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/binary-tree/tests/test_binary_tree.rs)
 
-- [lisp-cons-cell](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/lisp-cons-cell)
-  - [cell implementation](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/lisp-cons-cell/src/cell.rs)
-  - [const/car/cdr implementation](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/lisp-cons-cell/src/cons.rs)
-  - [cell tests](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/lisp-cons-cell/tests/test_cell.rs)
-  - [cons/car/cdr tests](https://github.com/gabrielfalcao/unique-pointer/tree/main/examples/lisp-cons-cell/tests/test_cons.rs)
+- [lisp-cons-cell](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/lisp-cons-cell)
+  - [cell implementation](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/lisp-cons-cell/src/cell.rs)
+  - [const/car/cdr implementation](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/lisp-cons-cell/src/cons.rs)
+  - [cell tests](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/lisp-cons-cell/tests/test_cell.rs)
+  - [cons/car/cdr tests](https://github.com/gabrielfalcao/unique-pointer/tree/4e4e33131bc973ee283742b71f0da6e780773ad1/examples/lisp-cons-cell/tests/test_cons.rs)
