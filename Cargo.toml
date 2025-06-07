@@ -1,6 +1,6 @@
 [package]
 name = "unique-pointer"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Provides an experimental data structure `UniquePointer` that makes extensive use of `unsafe` rust to provide a shared pointer across other data structures."
 documentation = "https://docs.rs/unique-pointer"
