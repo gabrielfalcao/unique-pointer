@@ -1,12 +1,12 @@
 [package]
 name = "unique-pointer"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 description = "Provides an experimental data structure `UniquePointer` that makes extensive use of `unsafe` rust to provide a shared pointer across other data structures."
 documentation = "https://docs.rs/unique-pointer"
 readme = "README.md"
 homepage = "https://github.com/gabrielfalcao/unique-pointer"
-license = "MIT OR Apache-2.0"
+license = "MIT"
 keywords = ["experimental", "rust", "memory", "library"]
 authors = ["Gabriel DeMoura <gabrielteratos@gmail.com>"]
 categories = ["algorithms", "data-structures"]
