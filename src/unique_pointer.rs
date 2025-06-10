@@ -1124,7 +1124,9 @@ where
     T: Debug,
 {
     fn from(data: T) -> UniquePointer<T> {
-        UniquePointer::from_ref(&data)
+        let mut up = UniquePointer::<T>::null();
+        up.write(data);
+        up
     }
 }
 /// The [Clone] implementation of `UniquePointer` is special
