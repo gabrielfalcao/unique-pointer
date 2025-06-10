@@ -7,11 +7,12 @@ use std::ops::{Deref, DerefMut};
 
 use crate::{RefCounter, UniquePointee};
 
-/// experimental data structure that makes extensive use of unsafe
-/// rust to provide a shared pointer throughout the runtime of a rust
-/// program as transparently as possible.
+/// `UniquePointer` is an experimental data structure that makes
+/// extensive use of unsafe rust to provide a shared pointer
+/// throughout the runtime of a rust program as transparently as
+/// possible.
 ///
-/// [`UniquePointer`]'s design's purpose is two-fold:
+/// [UniquePointer]'s design's purpose is two-fold:
 ///
 /// - Leverage the implementation of circular data structures such as
 /// Lisp cons cells.
@@ -20,7 +21,7 @@ use crate::{RefCounter, UniquePointee};
 /// computer science data-structures (e.g.: Binary Trees, Linked Lists
 /// etc) such that the concept of pointer is as close to C as possible
 /// in terms of developer experience and so when a CS teacher speaks
-/// in terms of pointers, students can use [`UniquePointer`] in their
+/// in terms of pointers, students can use [UniquePointer] in their
 /// data-structures knowing that cloning their data-structures also
 /// means cloning the pointers transparently.
 ///
@@ -36,27 +37,27 @@ use crate::{RefCounter, UniquePointee};
 /// and [`UniquePointer::cast_const`] not unlike those of raw
 /// pointers, and also implements the methods
 /// [`UniquePointer::as_ref`] and [`UniquePointer::as_mut`] with a
-/// signature compatible with that of the [`AsRef`] and [`AsMut`]
+/// signature compatible with that of the [AsRef] and [AsMut]
 /// traits such that users of raw pointers can migrate to
-/// [`UniquePointer`] without much difficulty.
+/// [UniquePointer] without much difficulty.
 ///
 /// `UniquePointer` is designed a way such that Enums and Structs
 /// using `UniquePointer` can safely clone `UniquePointer` while the
 /// memory address and provenance of its value is shared.
 ///
-/// [`UniquePointer`] is able to extend lifetimes because it maintains
+/// [UniquePointer] is able to extend lifetimes because it maintains
 /// its own reference counting outside of the rust compiler.
 ///
-/// Reference Counting is provided by [`RefCounter`] which uses unsafe
+/// Reference Counting is provided by [RefCounter] which uses unsafe
 /// rust to ensure that ref counts are shared across cloned objects
 /// memory.
 ///
-/// Both [`UniquePointer`] and [`RefCounter`] use relatively obscure
+/// Both [UniquePointer] and [RefCounter] use relatively obscure
 /// rust techniques under the hood to allow writing in non-mut
 /// references in strategic occasions such as incrementing its
-/// reference count within its [`Clone`] implementation.
+/// reference count within its [Clone] implementation.
 ///
-/// UniquePointer only supports [`Sized`] types, that is, [Zero-Sized
+/// UniquePointer only supports [Sized] types, that is, [Zero-Sized
 /// Types](https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts)
 /// (ZSTs) are not supported.
 ///
@@ -81,12 +82,382 @@ use crate::{RefCounter, UniquePointee};
 /// assert_eq!(value.as_ref(), Some(&"string"));
 /// ```
 ///
-/// # Caveats of `UniquePointer`:
+/// # Caveats
 ///
-/// - Only supports types that implement [`Debug`]
+/// - Only supports types that implement [Debug]
 /// - Does not support [ZSTs](https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts) (Zero-Sized Types)
-/// - [`UniquePointer`] **IS NOT THREAD SAFE**
+/// - [UniquePointer] **IS NOT THREAD SAFE**
 ///
+/// # Lisp Cons Cell Example
+///
+/// ```
+/// use std::iter::Extend;
+///
+/// use unique_pointer::{RefCounter, UniquePointer};
+/// # use std::borrow::Cow;
+/// # use std::convert::{AsMut, AsRef};
+/// #
+/// # #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+/// # pub enum Value<'c> {
+/// #     #[default]
+/// #     Nil,
+/// #     String(Cow<'c, str>),
+/// #     Byte(u8),
+/// #     UInt(u64),
+/// #     Int(i64),
+/// # }
+/// # impl<'c> Value<'_> {
+/// #     pub fn nil() -> Value<'c> {
+/// #         Value::Nil
+/// #     }
+/// #
+/// #     pub fn is_nil(&self) -> bool {
+/// #         if *self == Value::Nil {
+/// #             true
+/// #         } else {
+/// #             false
+/// #         }
+/// #     }
+/// # }
+/// #
+/// # impl<'c> Drop for Value<'c> {
+/// #     fn drop(&mut self) {}
+/// # }
+/// #
+/// # impl std::fmt::Display for Value<'_> {
+/// #     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+/// #         write!(
+/// #             f,
+/// #             "{}",
+/// #             match self {
+/// #                 Value::Nil => "nil".to_string(),
+/// #                 Value::String(h) => format!("{}", h),
+/// #                 Value::Byte(h) => format!("{}", h),
+/// #                 Value::UInt(h) => format!("{}", h),
+/// #                 Value::Int(h) => format!("{}", h),
+/// #             }
+/// #         )
+/// #     }
+/// # }
+/// # impl std::fmt::Debug for Value<'_> {
+/// #     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+/// #         write!(
+/// #             f,
+/// #             "{}",
+/// #             match self {
+/// #                 Value::Nil => "nil".to_string(),
+/// #                 Value::String(h) => format!("{:#?}", h),
+/// #                 Value::Byte(h) => format!("{}u8", h),
+/// #                 Value::UInt(h) => format!("{}u64", h),
+/// #                 Value::Int(h) => format!("{}i64", h),
+/// #             }
+/// #         )
+/// #     }
+/// # }
+/// #
+/// # impl<'c> From<u8> for Value<'c> {
+/// #     fn from(value: u8) -> Value<'c> {
+/// #         Value::Byte(value)
+/// #     }
+/// # }
+/// # impl<'c> From<u64> for Value<'c> {
+/// #     fn from(value: u64) -> Value<'c> {
+/// #         Value::UInt(value)
+/// #     }
+/// # }
+/// # impl<'c> From<i64> for Value<'c> {
+/// #     fn from(value: i64) -> Value<'c> {
+/// #         Value::Int(value)
+/// #     }
+/// # }
+/// # impl<'c> From<&'c str> for Value<'c> {
+/// #     fn from(value: &'c str) -> Value<'c> {
+/// #         Value::String(Cow::from(value))
+/// #     }
+/// # }
+/// # impl<'c> From<Cow<'c, str>> for Value<'c> {
+/// #     fn from(value: Cow<'c, str>) -> Value<'c> {
+/// #         Value::from(value.into_owned())
+/// #     }
+/// # }
+/// # impl<'c> From<&'c mut str> for Value<'c> {
+/// #     fn from(value: &'c mut str) -> Value<'c> {
+/// #         Value::String(Cow::<'c, str>::Borrowed(&*value))
+/// #     }
+/// # }
+/// # impl<'c> From<String> for Value<'c> {
+/// #     fn from(value: String) -> Value<'c> {
+/// #         Value::String(Cow::from(value))
+/// #     }
+/// # }
+/// # impl<'c> From<Option<String>> for Value<'c> {
+/// #     fn from(value: Option<String>) -> Value<'c> {
+/// #         match value {
+/// #             None => Value::Nil,
+/// #             Some(value) => Value::from(value),
+/// #         }
+/// #     }
+/// # }
+/// #
+/// # impl<'c> AsRef<Value<'c>> for Value<'c> {
+/// #     fn as_ref(&self) -> &Value<'c> {
+/// #         unsafe { &*self }
+/// #     }
+/// # }
+/// # impl<'c> AsMut<Value<'c>> for Value<'c> {
+/// #     fn as_mut(&mut self) -> &mut Value<'c> {
+/// #         unsafe { &mut *self }
+/// #     }
+/// # }
+/// #
+/// # impl<'c> PartialEq<&Value<'c>> for Value<'c> {
+/// #     fn eq(&self, other: &&Value<'c>) -> bool {
+/// #         let other = unsafe { &**other };
+/// #         self == other
+/// #     }
+/// # }
+/// #
+/// # impl<'c> PartialEq<&mut Value<'c>> for Value<'c> {
+/// #     fn eq(&self, other: &&mut Value<'c>) -> bool {
+/// #         let other = unsafe { &**other };
+/// #         self == other
+/// #     }
+/// # }
+/// #
+///
+/// #[derive(Debug)]
+/// pub struct Cell<'c> {
+///     head: UniquePointer<Value<'c>>,
+///     tail: UniquePointer<Cell<'c>>,
+///     refs: RefCounter,
+///     length: usize,
+/// }
+///
+/// impl<'c> Cell<'c> {
+///     pub fn nil() -> Cell<'c> {
+///         Cell {
+///             head: UniquePointer::<Value<'c>>::null(),
+///             tail: UniquePointer::<Cell<'c>>::null(),
+///             refs: RefCounter::null(),
+///             length: 0,
+///         }
+///     }
+///
+///     pub fn is_nil(&self) -> bool {
+///         self.head.is_null() && self.tail.is_null()
+///     }
+///
+///     pub fn new(value: Value<'c>) -> Cell<'c> {
+///         let mut cell = Cell::nil();
+///         cell.write(value);
+///         cell
+///     }
+///
+///     fn write(&mut self, value: Value<'c>) {
+///         self.head.write(value);
+///         self.refs.write(1);
+///         self.length = 1;
+///     }
+///
+///     fn swap_head(&mut self, other: &mut Self) {
+///         self.head = unsafe {
+///             let head = other.head.propagate();
+///             other.head = self.head.propagate();
+///             head
+///         };
+///     }
+///
+///     fn swap_refs(&mut self, other: &mut Self) {
+///         self.refs = {
+///             let refs = other.refs.clone();
+///             other.refs = self.refs.clone();
+///             refs
+///         };
+///     }
+///
+///     pub fn head(&self) -> Option<Value<'c>> {
+///         self.head.try_read()
+///     }
+///
+///     pub fn add(&mut self, new: &mut Cell<'c>) {
+///         new.incr_ref();
+///         self.incr_ref();
+///         if self.head.is_null() {
+///             unsafe {
+///                 if !new.head.is_null() {
+///                     self.swap_head(new);
+///                 }
+///
+///                 if !new.tail.is_null() {
+///                     let tail = new.tail.inner_mut();
+///                     tail.swap_head(new);
+///                     self.swap_refs(new);
+///                 }
+///                 self.tail = UniquePointer::read_only(new);
+///             }
+///         } else {
+///             if self.tail.is_null() {
+///                 self.tail = UniquePointer::read_only(new);
+///             } else {
+///                 self.tail.inner_mut().add(new);
+///             }
+///         }
+///     }
+///
+///     pub fn pop(&mut self) -> bool {
+///         if !self.tail.is_null() {
+///             self.tail.drop_in_place();
+///             self.tail = UniquePointer::null();
+///             true
+///         } else if !self.head.is_null() {
+///             self.head.drop_in_place();
+///             self.head = UniquePointer::null();
+///             true
+///         } else {
+///             false
+///         }
+///     }
+///
+///     pub fn is_empty(&self) -> bool {
+///         self.len() > 0
+///     }
+///
+///     pub fn len(&self) -> usize {
+///         let mut len = 0;
+///         if !self.head.is_null() {
+///             len += 1
+///         }
+///         if let Some(tail) = self.tail() {
+///             len += tail.len();
+///         }
+///         len
+///     }
+///
+///     pub fn tail(&self) -> Option<&'c Cell<'c>> {
+///         self.tail.as_ref()
+///     }
+///
+///     pub fn values(&self) -> Vec<Value<'c>> {
+///         let mut values = Vec::<Value>::new();
+///         if let Some(head) = self.head() {
+///             values.push(head.clone());
+///         }
+///         if let Some(tail) = self.tail() {
+///             values.extend(tail.values());
+///         }
+///         values
+///     }
+///
+///     fn incr_ref(&mut self) {
+///         self.refs += 1;
+///         if !self.tail.is_null() {
+///             if let Some(tail) = self.tail.as_mut() {
+///                 tail.incr_ref();
+///             }
+///         }
+///     }
+///
+///     fn decr_ref(&mut self) {
+///         self.refs -= 1;
+///         if !self.tail.is_null() {
+///             if let Some(tail) = self.tail.as_mut() {
+///                 tail.decr_ref();
+///             }
+///         }
+///     }
+///
+///     fn dealloc(&mut self) {
+///         if self.refs > 0 {
+///             self.decr_ref();
+///         } else {
+///             self.head.drop_in_place();
+///             self.tail.drop_in_place();
+///         }
+///     }
+/// }
+///
+/// impl<'c> From<Value<'c>> for Cell<'c> {
+///     fn from(value: Value<'c>) -> Cell<'c> {
+///         Cell::new(value)
+///     }
+/// }
+/// impl<'c> From<&'c str> for Cell<'c> {
+///     fn from(value: &'c str) -> Cell<'c> {
+///         let value = Value::from(value);
+///         Cell::new(value)
+///     }
+/// }
+/// impl<'c> From<u8> for Cell<'c> {
+///     fn from(value: u8) -> Cell<'c> {
+///         Cell::new(Value::Byte(value))
+///     }
+/// }
+/// impl<'c> From<u64> for Cell<'c> {
+///     fn from(value: u64) -> Cell<'c> {
+///         if value < u8::MAX.into() {
+///             Cell::new(Value::Byte(value as u8))
+///         } else {
+///             Cell::new(Value::UInt(value))
+///         }
+///     }
+/// }
+/// impl<'c> From<i32> for Cell<'c> {
+///     fn from(value: i32) -> Cell<'c> {
+///         if let Ok(value) = TryInto::<u64>::try_into(value) {
+///             Cell::new(Value::UInt(value))
+///         } else {
+///             Cell::new(Value::Int(value.into()))
+///         }
+///     }
+/// }
+/// impl<'c> From<i64> for Cell<'c> {
+///     fn from(value: i64) -> Cell<'c> {
+///         Cell::new(Value::from(value))
+///     }
+/// }
+///
+/// impl<'c> PartialEq<Cell<'c>> for Cell<'c> {
+///     fn eq(&self, other: &Cell<'c>) -> bool {
+///         if self.head.is_null() == other.head.is_null() {
+///             true
+///         } else if let Some(head) = self.head() {
+///             if let Some(value) = other.head() {
+///                 return head == value && (self.tail() == other.tail());
+///             } else {
+///                 false
+///             }
+///         } else {
+///             false
+///         }
+///     }
+/// }
+///
+/// impl<'c> Default for Cell<'c> {
+///     fn default() -> Cell<'c> {
+///         Cell::nil()
+///     }
+/// }
+/// impl<'c> Clone for Cell<'c> {
+///     fn clone(&self) -> Cell<'c> {
+///         let mut cell = Cell::nil();
+///         cell.refs = self.refs.clone();
+///         if self.head.is_not_null() {
+///             cell.head = self.head.clone();
+///         }
+///         if self.tail.is_not_null() {
+///             cell.tail = self.tail.clone();
+///         }
+///         cell
+///     }
+/// }
+/// impl<'c> Drop for Cell<'c> {
+///     fn drop(&mut self) {
+///         self.dealloc();
+///     }
+/// }
+/// ```
+///
+#[doc(alias = "Pointer")]
 pub struct UniquePointer<T: UniquePointee> {
     mut_addr: usize,
     mut_ptr: *mut T,
@@ -97,7 +468,7 @@ pub struct UniquePointer<T: UniquePointee> {
 }
 
 impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
-    /// creates a NULL `UniquePointer` ready to be written via [`write`].
+    /// creates a NULL `UniquePointer` ready to be written via [write].
     pub fn null() -> UniquePointer<T> {
         UniquePointer {
             mut_addr: 0,
@@ -110,7 +481,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 
     /// creates a new `UniquePointer` by effectively
-    /// reading the value referenced by [`src`]
+    /// reading the value referenced by [src]
     ///
     pub fn from_ref(src: &T) -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
@@ -127,12 +498,12 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
         up
     }
 
-    /// is designed for use within the [`Clone`] implementation
+    /// is designed for use within the [Clone] implementation
     /// of `UniquePointer`.
     ///
-    /// The [`copy`] method creates a NULL `UniquePointer` flagged as
+    /// The [copy] method creates a NULL `UniquePointer` flagged as
     /// [`is_copy`] such that a double-free does not happen in
-    /// [`dealloc`].
+    /// [dealloc].
     fn copy() -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
         up.is_copy = true;
@@ -143,8 +514,8 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// the sense that [`UniquePointer::is_copy`] returns true.
     ///
     /// Because of that rationale a double-free occurs if there are
-    /// two or more "containers" (e.g.: [`struct`]s and [`enum`]s)
-    /// implementing [`Drop`] and holding the same propagated
+    /// two or more "containers" (e.g.: [struct]s and [enum]s)
+    /// implementing [Drop] and holding the same propagated
     /// `UniquePointer` instance. For this reason
     /// [`UniquePointer::propagate`] is unsafe.
     ///
@@ -247,10 +618,10 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// calls [`UniquePointer::copy_from_mut_ptr`] to create a *read-only*
     /// `UniquePointer` from a reference of `T`, useful for
     /// iterating over self-referential data structures that use
-    /// [`RefCounter`] to count refs.
+    /// [RefCounter] to count refs.
     ///
     /// Note: [`UniquePointer::read_only`] might be a better alternative when `T` is
-    /// a data structure that does not use [`RefCounter`].
+    /// a data structure that does not use [RefCounter].
     pub fn copy_from_ref(data: &T, refs: usize) -> UniquePointer<T> {
         let ptr = (data as *const T).cast_mut();
         UniquePointer::copy_from_mut_ptr(ptr, refs)
@@ -258,11 +629,11 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
 
     /// creates a *read-only* `UniquePointer`
     /// from a reference of `T`, useful for iterating over
-    /// self-referential data structures that use [`RefCounter`] to
+    /// self-referential data structures that use [RefCounter] to
     /// count refs.
     ///
     /// Note: [`UniquePointer::read_only`] might be a better alternative when `T` is
-    /// a data structure that does not use [`RefCounter`].
+    /// a data structure that does not use [RefCounter].
     pub fn copy_from_mut_ptr(ptr: *mut T, refs: usize) -> UniquePointer<T> {
         let addr = UniquePointer::provenance_of_mut_ptr(ptr);
         let refs = RefCounter::from(refs);
@@ -486,7 +857,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
 
     /// deallocates a `UniquePointer`.
     ///
-    /// The [`soft`] boolean argument indicates whether the
+    /// The [soft] boolean argument indicates whether the
     /// `UniquePointer` should have its reference count decremented or
     /// deallocated immediately.
     ///
@@ -516,7 +887,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// internal pointer is non-null and matches its provenance
     /// address, such that "copies" do not incur a double-free.
     ///
-    /// When [`ptr`] is a NULL pointer and the internal pointer of
+    /// When [ptr] is a NULL pointer and the internal pointer of
     /// `UniquePointer` in question is NOT NULL, then it is
     /// deallocated prior to setting it to NULL.
     fn set_mut_ptr(&mut self, ptr: *mut T, dealloc: bool) {
@@ -549,11 +920,11 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
         self.mut_addr = addr;
     }
 
-    /// is internally used by [`dealloc`] when the number of
+    /// is internally used by [dealloc] when the number of
     /// references gets down to zero in a "soft" deallocation and
     /// immediately in a "hard" deallocation.
     ///
-    /// See [`dealloc`] for more information regarding the difference
+    /// See [dealloc] for more information regarding the difference
     /// between "soft" and "hard" deallocation.
     fn free(&mut self) {
         if !self.can_dealloc() {
@@ -756,7 +1127,7 @@ where
         UniquePointer::from_ref(&data)
     }
 }
-/// The [`Clone`] implementation of `UniquePointer` is special
+/// The [Clone] implementation of `UniquePointer` is special
 /// because it flags cloned values as clones such that a double-free
 /// doesn not occur.
 impl<T: UniquePointee> Clone for UniquePointer<T>

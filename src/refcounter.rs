@@ -4,8 +4,8 @@ use std::convert::{AsMut, AsRef};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Deref, DerefMut, SubAssign};
 /// `RefCounter` is a data-structure designed specifically for
-/// internal use in [`UniquePointer`] allowing reference counts to be
-/// shared across clones of [`UniquePointer`].
+/// internal use in [`unique_pointer::UniquePointer`] allowing reference counts to be
+/// shared across clones of [`unique_pointer::UniquePointer`].
 ///
 /// [`RefCounter`] uses relatively obscure rust techniques under
 /// the hood to allow writing in non-mut references in strategic

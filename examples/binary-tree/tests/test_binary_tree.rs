@@ -1,7 +1,7 @@
 use binary_tree::{subtree_delete, Node, Value};
 use k9::assert_equal;
 
-struct MitCourseWareTree<'t> {
+struct MitOpenCourseWare6006Tree<'t> {
     pub node_a: Node<'t>,
     pub node_b: Node<'t>,
     pub node_c: Node<'t>,
@@ -9,8 +9,8 @@ struct MitCourseWareTree<'t> {
     pub node_e: Node<'t>,
     pub node_f: Node<'t>,
 }
-impl<'t> MitCourseWareTree<'t> {
-    pub fn initial_state() -> MitCourseWareTree<'t> {
+impl<'t> MitOpenCourseWare6006Tree<'t> {
+    pub fn initial_state() -> MitOpenCourseWare6006Tree<'t> {
         ///|||||||||||||||||||||||||||||||||||||||||||||\\\
         ///                                             \\\
         ///              INITIAL TREE STATE             \\\
@@ -213,7 +213,7 @@ impl<'t> MitCourseWareTree<'t> {
         ///
         ///                                                                                        ///
         let mut tree = unsafe {
-            MitCourseWareTree {
+            MitOpenCourseWare6006Tree {
                 node_a,
                 node_b,
                 node_c,
@@ -236,16 +236,16 @@ impl<'t> MitCourseWareTree<'t> {
         tree.node_e.dealloc();
         tree.node_f.dealloc();
 
-        unsafe { std::mem::transmute::<MitCourseWareTree, MitCourseWareTree<'t>>(tree) }
+        unsafe { std::mem::transmute::<MitOpenCourseWare6006Tree, MitOpenCourseWare6006Tree<'t>>(tree) }
     }
 }
 #[test]
 fn test_tree_initial_state() {
-    MitCourseWareTree::initial_state();
+    MitOpenCourseWare6006Tree::initial_state();
 }
 #[test]
 fn test_tree_property_height() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_c.height(), 0); // leaf
     assert_equal!(tree.node_e.height(), 0); // leaf
@@ -260,7 +260,7 @@ fn test_tree_property_height() {
 
 #[test]
 fn test_tree_property_depth() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.depth(), 0);
 
@@ -275,7 +275,7 @@ fn test_tree_property_depth() {
 
 #[test]
 fn test_tree_property_leaf() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.leaf(), false);
 
@@ -290,7 +290,7 @@ fn test_tree_property_leaf() {
 
 #[test]
 fn test_tree_operation_subtree_first() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.subtree_first(), &tree.node_f);
     assert_equal!(tree.node_b.subtree_first(), &tree.node_f);
@@ -303,7 +303,7 @@ fn test_tree_operation_subtree_first() {
 
 #[test]
 fn test_tree_operation_successor() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_e.successor(), &tree.node_a);
     assert_equal!(tree.node_f.successor(), &tree.node_d);
@@ -315,7 +315,7 @@ fn test_tree_operation_successor() {
 
 #[test]
 fn test_tree_operation_successor_of_c() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_c.set_left(&mut node_g);
@@ -328,7 +328,7 @@ fn test_tree_operation_successor_of_c() {
 
 #[test]
 fn test_tree_operation_subtree_first_mut() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.subtree_first_mut(), &mut tree.node_f);
     assert_equal!(tree.node_b.subtree_first_mut(), &mut tree.node_f);
@@ -341,7 +341,7 @@ fn test_tree_operation_subtree_first_mut() {
 
 #[test]
 fn test_tree_operation_successor_mut() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_e.successor_mut(), &mut tree.node_a);
     assert_equal!(tree.node_f.successor_mut(), &mut tree.node_d);
@@ -353,7 +353,7 @@ fn test_tree_operation_successor_mut() {
 
 #[test]
 fn test_tree_operation_successor_mut_of_c() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_c.set_left(&mut node_g);
@@ -363,7 +363,7 @@ fn test_tree_operation_successor_mut_of_c() {
 
 #[test]
 fn test_tree_operation_subtree_insert_after_node_when_node_left_is_null() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_c.subtree_insert_after(&mut node_g);
@@ -373,7 +373,7 @@ fn test_tree_operation_subtree_insert_after_node_when_node_left_is_null() {
 
 #[test]
 fn test_tree_operation_subtree_insert_after_node_when_node_right_is_non_null() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_a.subtree_insert_after(&mut node_g);
@@ -384,7 +384,7 @@ fn test_tree_operation_subtree_insert_after_node_when_node_right_is_non_null() {
 
 #[test]
 fn test_tree_operation_predecessor() {
-    let tree = MitCourseWareTree::initial_state();
+    let tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.predecessor(), &tree.node_e);
     assert_equal!(tree.node_d.predecessor(), &tree.node_f);
@@ -395,7 +395,7 @@ fn test_tree_operation_predecessor() {
 
 #[test]
 fn test_tree_operation_predecessor_of_g_as_right_of_e() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_e.set_right(&mut node_g);
@@ -405,7 +405,7 @@ fn test_tree_operation_predecessor_of_g_as_right_of_e() {
 
 #[test]
 fn test_tree_operation_predecessor_mut() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     assert_equal!(tree.node_a.predecessor_mut(), &mut tree.node_e);
     assert_equal!(tree.node_d.predecessor_mut(), &mut tree.node_f);
@@ -416,7 +416,7 @@ fn test_tree_operation_predecessor_mut() {
 
 #[test]
 fn test_tree_operation_predecessor_mut_of_g_as_right_of_e() {
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     let mut node_g = Node::new(Value::from("G"));
     tree.node_e.set_right(&mut node_g);
@@ -427,7 +427,7 @@ fn test_tree_operation_predecessor_mut_of_g_as_right_of_e() {
 #[test]
 fn test_tree_operation_swap_item() {
     // Given the test tree in its initial state
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     // When I swap item of node A with item of node E
     tree.node_a.swap_item(&mut tree.node_e);
@@ -447,7 +447,7 @@ fn test_tree_operation_swap_item() {
 #[test]
 fn test_tree_operation_subtree_delete_leaf_nodes() {
     // Given the test tree in its initial state
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     // Then node D has 3 references
     assert_equal!(tree.node_d.refs(), 2);
@@ -481,7 +481,7 @@ fn test_tree_operation_subtree_delete_leaf_nodes() {
 #[test]
 fn test_tree_operation_subtree_delete_root_node() {
     // Given the test tree in its initial state
-    let mut tree = MitCourseWareTree::initial_state();
+    let mut tree = MitOpenCourseWare6006Tree::initial_state();
 
     // Then node A has 8 references
     assert_equal!(tree.node_a.refs(), 3);

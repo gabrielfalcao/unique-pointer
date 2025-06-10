@@ -11,7 +11,7 @@ linked-lists and binary trees in rust while not spending much time
 tinkering with rust lifetimes.
 
 
-## Example
+## Linked List Example
 
 ```rust
 #[derive(Clone, Debug)]
@@ -54,7 +54,7 @@ fn test_linked_list() {
     let mut b = a.append("b");
     let c = b.append("c");
 
-    assert_equal!(a.len(), 3);
+    assert_eq!(a.len(), 3);
 }
 ```
 
