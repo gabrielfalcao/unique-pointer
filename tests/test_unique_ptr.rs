@@ -63,7 +63,7 @@ impl<T: Debug> LinkedList<T> {
 fn test_linked_list() {
     let mut a = LinkedList::new("a");
     let mut b = a.append("b");
-    let c = b.append("c");
+    b.append("c");
 
     assert_equal!(a.len(), 3);
 }
