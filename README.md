@@ -1,7 +1,7 @@
 # Unique Pointer
 
 The [`unique-pointer`](https://crates.io/crates/unique-pointer) crate provides an experimental data structure
-[`UniquePointer`](https://docs.rs/unique-pointer/0.1.0/unique_pointer/unique_pointer/struct.UniquePointer.html) that makes extensive use of [`unsafe`] rust to
+[`UniquePointer`](https://docs.rs/unique-pointer/latest/unique_pointer/unique_pointer/struct.UniquePointer.html) that makes extensive use of [`unsafe`] rust to
 provide a shared pointer across other data structures.
 
 This crate is designed to be used as a building block of

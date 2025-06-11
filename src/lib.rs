@@ -3180,10 +3180,13 @@
 //!
 pub mod traits;
 #[doc(inline)]
-pub use traits::UniquePointee;
+pub use traits::Pointee;
 pub mod unique_pointer;
 #[doc(inline)]
 pub use unique_pointer::UniquePointer;
 pub mod refcounter;
 #[doc(inline)]
 pub use refcounter::RefCounter;
+pub mod smart_pointer;
+#[doc(inline)]
+pub use smart_pointer::SmartPointer;
