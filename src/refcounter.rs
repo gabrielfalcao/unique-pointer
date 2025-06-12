@@ -1,6 +1,7 @@
 use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::{AsMut, AsRef};
+use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Deref, DerefMut, SubAssign};
 /// `RefCounter` is a data-structure designed specifically for
@@ -67,6 +68,7 @@ impl RefCounter {
         if !self.data.is_null() {
             unsafe {
                 self.data.drop_in_place();
+                self.alloc();
             }
         }
     }
@@ -275,3 +277,9 @@ impl PartialEq for RefCounter {
 }
 
 impl Eq for RefCounter {}
+
+impl Hash for RefCounter {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.read().hash(state)
+    }
+}

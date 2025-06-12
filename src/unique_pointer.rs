@@ -2,7 +2,7 @@ use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::{AsMut, AsRef};
 use std::fmt::{Debug, Formatter, Pointer};
-use std::hash::{Hash, Hasher};
+use std::hash::{Hasher, Hash};
 use std::ops::{Deref, DerefMut};
 
 use crate::{RefCounter, UniquePointee};
@@ -25,9 +25,11 @@ use crate::{RefCounter, UniquePointee};
 /// data-structures knowing that cloning their data-structures also
 /// means cloning the pointers transparently.
 ///
-/// In fact, the author designed `UniquePointer` while studying the
-/// MIT CourseWare material of professor Erik Demaine in addition to
-/// studying lisp "cons" cells.
+/// In fact, the [author](https://github.com/gabrielfalcao/) designed
+/// `UniquePointer` while studying the MIT CourseWare material of
+/// professor [Erik Demaine](https://github.com/edemaine) as well as
+/// to implement lisp [cons](https://en.wikipedia.org/wiki/Cons) cells
+/// and ring-buffers.
 ///
 /// To this point the author reiterates: `UniquePointer` is an
 /// **experimental** data-structure designed primarily as a
@@ -97,7 +99,7 @@ use crate::{RefCounter, UniquePointee};
 /// # use std::borrow::Cow;
 /// # use std::convert::{AsMut, AsRef};
 /// #
-/// # #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+/// # #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 /// # pub enum Value<'c> {
 /// #     #[default]
 /// #     Nil,
@@ -225,7 +227,7 @@ use crate::{RefCounter, UniquePointee};
 /// # }
 /// #
 ///
-/// #[derive(Debug)]
+/// #[derive(Debug, Hash)]
 /// pub struct Cell<'c> {
 ///     head: UniquePointer<Value<'c>>,
 ///     tail: UniquePointer<Cell<'c>>,
@@ -532,7 +534,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// use std::fmt::Debug;
     /// use std::cmp::PartialEq;
     ///
-    /// #[derive(Clone, Debug)]
+    /// #[derive(Clone, Debug, Hash)]
     /// pub struct BinaryTreeNode<T: Debug> {
     ///     pub item: T,
     ///     pub parent: UniquePointer<BinaryTreeNode<T>>,

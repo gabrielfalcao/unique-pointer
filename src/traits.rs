@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::hash::Hash;
 
 /// The `UniquePointee` trait serves as a contract of sorts to ensure
 /// that types used in [`unique_pointer::UniquePointer`] implement

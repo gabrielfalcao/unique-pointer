@@ -17,7 +17,7 @@
 //! use std::convert::{AsMut, AsRef};
 //! use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 //!
-//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 //! #  pub enum Value<'c> {
 //! #      #[default]
 //! #      Nil,
@@ -789,7 +789,7 @@
 //! #  use std::convert::{AsMut, AsRef};
 //! #  use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 //! #  use unique_pointer::{UniquePointer, RefCounter};
-//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 //! #  pub enum Value<'c> {
 //! #      #[default]
 //! #      Nil,
@@ -2086,7 +2086,7 @@
 //! #  use std::convert::{AsMut, AsRef};
 //! #  use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 //! #  use unique_pointer::{UniquePointer, RefCounter};
-//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+//! #  #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 //! #  pub enum Value<'c> {
 //! #      #[default]
 //! #      Nil,
@@ -3051,7 +3051,7 @@
 //! use std::borrow::Cow;
 //! use std::convert::{AsMut, AsRef};
 //! use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-//! #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq)]
+//! #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 //! pub enum Value<'c> {
 //!     #[default]
 //!     Nil,

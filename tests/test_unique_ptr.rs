@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use k9::assert_equal;
 use unique_pointer::UniquePointer;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Value<'t> {
     String(Cow<'t, str>),
 }
@@ -20,12 +20,12 @@ impl<'t> From<&'t str> for Value<'t> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Data<'t> {
     pub value: UniquePointer<Value<'t>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct LinkedList<T: Debug> {
     pub item: T,
     pub next: UniquePointer<LinkedList<T>>,
@@ -68,7 +68,7 @@ fn test_linked_list() {
     assert_equal!(a.len(), 3);
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct BinaryTreeNode {
     pub item: String,
     pub parent: UniquePointer<BinaryTreeNode>,

@@ -14,7 +14,7 @@ tinkering with rust lifetimes.
 ## Linked List Example
 
 ```rust
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct LinkedList<T: Debug> {
     pub item: T,
     pub next: UniquePointer<LinkedList<T>>,
