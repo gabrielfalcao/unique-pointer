@@ -100,10 +100,9 @@ impl RefCounter {
 
     /// `write` writes a [`usize`] into a [`RefCounter`] as opposed to
     /// incrementing or decrementing it.
-    pub fn write(&self, data: usize) {
-        let mut up = unsafe { self.meta_mut() };
-        up.alloc();
-        let mut ptr = up.cast_mut();
+    pub fn write(&mut self, data: usize) {
+        self.alloc();
+        let mut ptr = self.cast_mut();
         unsafe {
             ptr.write(data);
         }
@@ -124,7 +123,7 @@ impl RefCounter {
     /// `inner_mut` returns a mutable reference to the internal data
     /// of a [`RefCounter`]. Writing to the memory area if not already
     /// allocated.
-    pub fn inner_mut<'c>(&self) -> &'c mut usize {
+    pub fn inner_mut<'c>(&mut self) -> &'c mut usize {
         if self.data.is_null() {
             self.write(0);
         }
