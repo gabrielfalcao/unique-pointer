@@ -1,6 +1,6 @@
 [package]
 name = "unique-pointer"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2024"
 description = "Provides the `UniquePointer` data structure that makes extensive use of `unsafe` rust to provide a shared pointer across other data structures."
 documentation = "https://docs.rs/unique-pointer"
@@ -17,6 +17,7 @@ cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
 [features]
 debug = []
+null-check = []
 
 [lib]
 name = "unique_pointer"

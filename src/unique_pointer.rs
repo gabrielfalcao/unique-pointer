@@ -522,8 +522,8 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// [`UniquePointer::propagate`] can be relatively observed as a
     /// drop-in replacement to [`UniquePointer::clone`] for cases
     /// when, for instance, swapping `UniquePointer` "instances"
-    /// between instances of `UniquePointer`-containing (structs,
-    /// enums and/or unions) is desired.
+    /// between instances of `UniquePointer`-containing (structs
+    /// and/or enums) is desired.
     ///
     /// Example
     ///
@@ -661,6 +661,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// returns true if the `UniquePointer` is NULL.
     pub fn is_null(&self) -> bool {
         let mut_is_null = self.mut_ptr.is_null();
+        #[cfg(feature="null-check")]
         if mut_is_null {
             assert!(self.mut_addr == 0);
         } else {
