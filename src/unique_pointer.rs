@@ -2,17 +2,17 @@ use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::{AsMut, AsRef};
 use std::fmt::{Debug, Formatter, Pointer};
-use std::hash::{Hasher, Hash};
+use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 
-use crate::{RefCounter, UniquePointee};
+use crate::{RefCounter, Pointee};
 
 /// `UniquePointer` is an experimental data structure that makes
 /// extensive use of unsafe rust to provide a shared pointer
 /// throughout the runtime of a rust program as transparently as
 /// possible.
 ///
-/// [UniquePointer]'s design's purpose is two-fold:
+/// [UniquePointer](Self)'s design's purpose is two-fold:
 ///
 /// - Leverage the implementation of circular data structures such as
 /// Lisp cons cells.
@@ -21,7 +21,7 @@ use crate::{RefCounter, UniquePointee};
 /// computer science data-structures (e.g.: Binary Trees, Linked Lists
 /// etc) such that the concept of pointer is as close to C as possible
 /// in terms of developer experience and so when a CS teacher speaks
-/// in terms of pointers, students can use [UniquePointer] in their
+/// in terms of pointers, students can use [UniquePointer](Self) in their
 /// data-structures knowing that cloning their data-structures also
 /// means cloning the pointers transparently.
 ///
@@ -41,20 +41,20 @@ use crate::{RefCounter, UniquePointee};
 /// [`UniquePointer::as_ref`] and [`UniquePointer::as_mut`] with a
 /// signature compatible with that of the [AsRef] and [AsMut]
 /// traits such that users of raw pointers can migrate to
-/// [UniquePointer] without much difficulty.
+/// [UniquePointer](Self) without much difficulty.
 ///
 /// `UniquePointer` is designed a way such that Enums and Structs
 /// using `UniquePointer` can safely clone `UniquePointer` while the
 /// memory address and provenance of its value is shared.
 ///
-/// [UniquePointer] is able to extend lifetimes because it maintains
+/// [UniquePointer](Self) is able to extend lifetimes because it maintains
 /// its own reference counting outside of the rust compiler.
 ///
 /// Reference Counting is provided by [RefCounter] which uses unsafe
 /// rust to ensure that ref counts are shared across cloned objects
 /// memory.
 ///
-/// Both [UniquePointer] and [RefCounter] use relatively obscure
+/// Both [UniquePointer](Self) and [RefCounter] use relatively obscure
 /// rust techniques under the hood to allow writing in non-mut
 /// references in strategic occasions such as incrementing its
 /// reference count within its [Clone] implementation.
@@ -88,7 +88,7 @@ use crate::{RefCounter, UniquePointee};
 ///
 /// - Only supports types that implement [Debug]
 /// - Does not support [ZSTs](https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts) (Zero-Sized Types)
-/// - [UniquePointer] **IS NOT THREAD SAFE**
+/// - [UniquePointer](Self) **IS NOT THREAD SAFE**
 ///
 /// # Lisp Cons Cell Example
 ///
@@ -460,7 +460,7 @@ use crate::{RefCounter, UniquePointee};
 /// ```
 ///
 #[doc(alias = "Pointer")]
-pub struct UniquePointer<T: UniquePointee> {
+pub struct UniquePointer<T: Pointee> {
     mut_addr: usize,
     mut_ptr: *mut T,
     refs: RefCounter,
@@ -469,7 +469,7 @@ pub struct UniquePointer<T: UniquePointee> {
     written: bool,
 }
 
-impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
+impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// creates a NULL `UniquePointer` ready to be written via [write].
     pub fn null() -> UniquePointer<T> {
         UniquePointer {
@@ -483,7 +483,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 
     /// creates a new `UniquePointer` by effectively
-    /// reading the value referenced by [src]
+    /// reading the value referenced by **`src`**
     ///
     pub fn from_ref(src: &T) -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
@@ -492,7 +492,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 
     /// `from_ref_mut` creates a new `UniquePointer` by effectively
-    /// reading the value referenced by `src`
+    /// reading the value referenced by **`src`**
     ///
     pub fn from_ref_mut(src: &mut T) -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
@@ -516,7 +516,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// the sense that [`UniquePointer::is_copy`] returns true.
     ///
     /// Because of that rationale a double-free occurs if there are
-    /// two or more "containers" (e.g.: [struct]s and [enum]s)
+    /// two or more "containers" (e.g.: [struct](std#keyword.struct.html)s and [enum](std#keyword.enum.html)s)
     /// implementing [Drop] and holding the same propagated
     /// `UniquePointer` instance. For this reason
     /// [`UniquePointer::propagate`] is unsafe.
@@ -591,7 +591,107 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
         back_node.written = self.written;
         back_node
     }
-
+    /// `unlock_reference` extends the lifetime of `&T` to `&'t T` and
+    /// unlocks `&'t T` into a `&'t mut T`
+    ///
+    /// This function is primarily designed to permit data-structures
+    /// implementing their own reference counting [`Clone`] to "break
+    /// out" of a read-only reference, so to speak, so that its
+    /// references can be incremented.
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use std::fmt::Debug;
+    /// use unique_pointer::{RefCounter, UniquePointer};
+    ///
+    /// #[derive(Debug, Hash)]
+    /// pub struct LinkedList<T: Debug + Clone> {
+    ///     pub item: T,
+    ///     pub next: UniquePointer<LinkedList<T>>,
+    ///     pub refs: usize,
+    /// }
+    /// impl<T: Debug + Clone> LinkedList<T> {
+    ///     pub fn new(item: T) -> LinkedList<T> {
+    ///         LinkedList {
+    ///             item,
+    ///             next: UniquePointer::null(),
+    ///             refs: 1,
+    ///         }
+    ///     }
+    ///     pub fn item(&self) -> T {
+    ///         self.item.clone()
+    ///     }
+    ///     fn incr_ref(&mut self) {
+    ///         self.refs += 1;
+    ///     }
+    ///     fn decr_ref(&mut self) {
+    ///         if self.refs > 0 {
+    ///             self.refs -= 1;
+    ///         }
+    ///     }
+    ///     fn dealloc(&mut self) {
+    ///         self.decr_ref();
+    ///         if self.next.is_not_null() {
+    ///             self.next.inner_mut().dealloc()
+    ///         }
+    ///         if self.refs == 0 {
+    ///             self.next.drop_in_place();
+    ///         }
+    ///     }
+    ///     pub fn append(&mut self, value: T) -> LinkedList<T> {
+    ///         let next = LinkedList::new(value);
+    ///         self.next.write_ref(&next);
+    ///         next
+    ///     }
+    ///
+    ///     pub fn next(&self) -> Option<&LinkedList<T>> {
+    ///         self.next.as_ref()
+    ///     }
+    ///
+    ///     pub fn len(&self) -> usize {
+    ///         let mut length = 1;
+    ///
+    ///         if let Some(next) = self.next() {
+    ///             length += 1;
+    ///             length += next.len();
+    ///         }
+    ///         length
+    ///     }
+    /// }
+    /// impl<T: Debug + Clone> Clone for LinkedList<T> {
+    ///     fn clone(&self) -> LinkedList<T> {
+    ///         unsafe {
+    ///             UniquePointer::<LinkedList<T>>::unlock_reference(self).incr_ref();
+    ///         }
+    ///         let mut list = LinkedList::new(self.item());
+    ///         list.refs = self.refs;
+    ///         list.next = self.next.clone();
+    ///         list
+    ///     }
+    /// }
+    /// impl<T: Debug + Clone> Drop for LinkedList<T> {
+    ///     fn drop(&mut self) {
+    ///         self.dealloc();
+    ///     }
+    /// }
+    /// let mut a = LinkedList::new("a");
+    /// let mut b = a.append("b");
+    /// b.append("c");
+    ///
+    /// assert_eq!(a.refs, 1);
+    /// assert_eq!(a.len(), 3);
+    /// let z = a.clone();
+    /// assert_eq!(z.len(), 3);
+    /// assert_eq!(a.refs, 2);
+    /// assert_eq!(z.refs, 2);
+    /// ```
+    #[allow(mutable_transmutes)]
+    pub unsafe fn unlock_reference<'t>(read_only: &T) -> &'t mut T {
+        let extended = unsafe { std::mem::transmute::<&T, &'t T>(read_only) };
+        let unlocked = unsafe { std::mem::transmute::<&'t T, &'t mut T>(extended) };
+        unlocked
+    }
     /// calls [`UniquePointer::copy_from_ref`] to create a *read-only* `UniquePointer` from a
     /// reference of `T`, useful for iterating over self-referential
     /// data structures.
@@ -663,7 +763,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     /// returns true if the `UniquePointer` is NULL.
     pub fn is_null(&self) -> bool {
         let mut_is_null = self.mut_ptr.is_null();
-        #[cfg(feature="null-check")]
+        #[cfg(feature = "null-check")]
         if mut_is_null {
             assert!(self.mut_addr == 0);
         } else {
@@ -849,7 +949,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
         }
     }
 
-    /// compatibility layer to [`std::pointer::as_mut`]
+    /// compatibility layer to [`std::pointer::as_mut`](std#primitive.pointer.html#formatting-parameters)
     pub fn as_mut(&mut self) -> Option<&'c mut T> {
         if self.is_written() {
             Some(self.inner_mut())
@@ -990,7 +1090,7 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 }
 
-impl<T: UniquePointee> UniquePointer<T> {
+impl<T: Pointee> UniquePointer<T> {
     /// helper method that returns the
     /// address and provenance of a const pointer
     pub fn provenance_of_const_ptr(ptr: *const T) -> usize {
@@ -1017,7 +1117,7 @@ impl<T: UniquePointee> UniquePointer<T> {
 }
 
 #[allow(unused)]
-impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
+impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// unsafe method that turns a "self reference"
     /// into a mutable "self reference"
     unsafe fn meta_mut(&'c self) -> &'c mut UniquePointer<T> {
@@ -1039,34 +1139,22 @@ impl<'c, T: UniquePointee + 'c> UniquePointer<T> {
     }
 }
 #[allow(invalid_reference_casting)]
-impl<T: UniquePointee> UniquePointer<T> {
-    /// `incr_ref` uses unsafe rust to increment references of a
-    /// non-mut reference to `UniquePointer`
+impl<T: Pointee> UniquePointer<T> {
     fn incr_ref(&self) {
         if self.is_null() {
             return;
         }
-        unsafe {
-            let ptr = self.meta_mut_ptr();
-            let up = &mut *ptr;
-            up.refs.incr();
-        }
+        self.refs.incr();
     }
 
-    /// uses unsafe rust to decrement references of a
-    /// non-mut reference to `UniquePointer`
     fn decr_ref(&self) {
         if self.refs == 0 {
             return;
         }
-        unsafe {
-            let ptr = self.meta_mut_ptr();
-            let up = &mut *ptr;
-            up.refs.decr();
-        }
+        self.refs.decr();
     }
 }
-impl<T: UniquePointee> AsRef<T> for UniquePointer<T> {
+impl<T: Pointee> AsRef<T> for UniquePointer<T> {
     fn as_ref(&self) -> &T {
         if self.is_null() {
             panic!("null pointer: {:#?}", self);
@@ -1074,7 +1162,7 @@ impl<T: UniquePointee> AsRef<T> for UniquePointer<T> {
         self.inner_ref()
     }
 }
-impl<T: UniquePointee> AsMut<T> for UniquePointer<T> {
+impl<T: Pointee> AsMut<T> for UniquePointer<T> {
     fn as_mut(&mut self) -> &mut T {
         if self.is_null() {
             panic!("null pointer: {:#?}", self);
@@ -1083,7 +1171,7 @@ impl<T: UniquePointee> AsMut<T> for UniquePointer<T> {
     }
 }
 
-impl<T: UniquePointee> Deref for UniquePointer<T> {
+impl<T: Pointee> Deref for UniquePointer<T> {
     type Target = T;
 
     fn deref(&self) -> &T {
@@ -1091,13 +1179,13 @@ impl<T: UniquePointee> Deref for UniquePointer<T> {
     }
 }
 
-impl<T: UniquePointee> DerefMut for UniquePointer<T> {
+impl<T: Pointee> DerefMut for UniquePointer<T> {
     fn deref_mut(&mut self) -> &mut T {
         self.inner_mut()
     }
 }
 
-impl<T: UniquePointee> Drop for UniquePointer<T>
+impl<T: Pointee> Drop for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1106,7 +1194,7 @@ where
     }
 }
 
-impl<T: UniquePointee> From<&T> for UniquePointer<T>
+impl<T: Pointee> From<&T> for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1114,7 +1202,7 @@ where
         UniquePointer::<T>::from_ref(data)
     }
 }
-impl<T: UniquePointee> From<&mut T> for UniquePointer<T>
+impl<T: Pointee> From<&mut T> for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1122,7 +1210,7 @@ where
         UniquePointer::<T>::from_ref_mut(data)
     }
 }
-impl<T: UniquePointee> From<T> for UniquePointer<T>
+impl<T: Pointee> From<T> for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1135,7 +1223,7 @@ where
 /// The [Clone] implementation of `UniquePointer` is special
 /// because it flags cloned values as clones such that a double-free
 /// doesn not occur.
-impl<T: UniquePointee> Clone for UniquePointer<T>
+impl<T: Pointee> Clone for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1150,7 +1238,7 @@ where
     }
 }
 
-impl<T: UniquePointee> Pointer for UniquePointer<T>
+impl<T: Pointee> Pointer for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1159,7 +1247,7 @@ where
     }
 }
 
-impl<T: UniquePointee> Debug for UniquePointer<T>
+impl<T: Pointee> Debug for UniquePointer<T>
 where
     T: Debug,
 {
@@ -1190,7 +1278,7 @@ where
     }
 }
 
-impl<T: UniquePointee + PartialEq> PartialEq<UniquePointer<T>> for UniquePointer<T> {
+impl<T: Pointee + PartialEq> PartialEq<UniquePointer<T>> for UniquePointer<T> {
     fn eq(&self, fles: &UniquePointer<T>) -> bool {
         if self.addr() == fles.addr() {
             return true;
@@ -1202,8 +1290,8 @@ impl<T: UniquePointee + PartialEq> PartialEq<UniquePointer<T>> for UniquePointer
         self.inner_ref().eq(fles.inner_ref())
     }
 }
-impl<T: UniquePointee + Eq> Eq for UniquePointer<T> {}
-impl<T: UniquePointee + PartialOrd> PartialOrd<UniquePointer<T>> for UniquePointer<T> {
+impl<T: Pointee + Eq> Eq for UniquePointer<T> {}
+impl<T: Pointee + PartialOrd> PartialOrd<UniquePointer<T>> for UniquePointer<T> {
     fn partial_cmp(&self, other: &UniquePointer<T>) -> Option<Ordering> {
         if self.is_null() {
             return None;
@@ -1215,7 +1303,7 @@ impl<T: UniquePointee + PartialOrd> PartialOrd<UniquePointer<T>> for UniquePoint
     }
 }
 
-impl<T: UniquePointee + PartialOrd> PartialOrd<T> for UniquePointer<T> {
+impl<T: Pointee + PartialOrd> PartialOrd<T> for UniquePointer<T> {
     fn partial_cmp(&self, other: &T) -> Option<Ordering> {
         if self.is_null() {
             return None;
@@ -1223,7 +1311,7 @@ impl<T: UniquePointee + PartialOrd> PartialOrd<T> for UniquePointer<T> {
         self.inner_ref().partial_cmp(other)
     }
 }
-impl<T: UniquePointee + PartialEq> PartialEq<T> for UniquePointer<T> {
+impl<T: Pointee + PartialEq> PartialEq<T> for UniquePointer<T> {
     fn eq(&self, other: &T) -> bool {
         if self.is_null() {
             return false;
@@ -1232,7 +1320,7 @@ impl<T: UniquePointee + PartialEq> PartialEq<T> for UniquePointer<T> {
     }
 }
 
-impl<T: UniquePointee + Ord> Ord for UniquePointer<T> {
+impl<T: Pointee + Ord> Ord for UniquePointer<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         if self.is_null() {
             return Ordering::Less;
@@ -1241,7 +1329,7 @@ impl<T: UniquePointee + Ord> Ord for UniquePointer<T> {
     }
 }
 
-impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
+impl<T: Pointee + Hash> Hash for UniquePointer<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.inner_ref().hash(state)
     }
@@ -1249,8 +1337,8 @@ impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
 
 // impl<T: Deref, S: Deref> PartialEq<&UniquePointer<S>> for UniquePointer<T>
 // where
-//     T: PartialEq<S::Target> + UniquePointee,
-//     S: UniquePointee,
+//     T: PartialEq<S::Target> + Pointee,
+//     S: Pointee,
 // {
 //     fn eq(&self, other: &&UniquePointer<S>) -> bool {
 //         T::eq(self, other)
@@ -1263,8 +1351,8 @@ impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
 
 // impl<T: Deref, S: Deref> PartialEq<UniquePointer<S>> for UniquePointer<T>
 // where
-//     T: PartialEq<S::Target> + UniquePointee,
-//     S: UniquePointee,
+//     T: PartialEq<S::Target> + Pointee,
+//     S: Pointee,
 // {
 //     fn eq(&self, other: &UniquePointer<S>) -> bool {
 //         T::eq(self, other)
@@ -1276,14 +1364,14 @@ impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
 // }
 
 // impl<T: Deref<Target: Eq> + Eq + PartialEq<<T as Deref>::Target>> Eq for UniquePointer<T> where
-//     T: UniquePointee
+//     T: Pointee
 // {
 // }
 
 // impl<T: Deref, S: Deref> PartialOrd<UniquePointer<S>> for UniquePointer<T>
 // where
-//     T: PartialOrd<S::Target> + UniquePointee,
-//     S: UniquePointee,
+//     T: PartialOrd<S::Target> + Pointee,
+//     S: Pointee,
 // {
 //     fn partial_cmp(&self, other: &UniquePointer<S>) -> Option<Ordering> {
 //         T::partial_cmp(self, other)
@@ -1308,7 +1396,7 @@ impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
 
 // impl<T: Deref<Target: Ord> + Ord + PartialOrd<<T as Deref>::Target>> Ord for UniquePointer<T>
 // where
-//     T: UniquePointee,
+//     T: Pointee,
 // {
 //     fn cmp(&self, other: &Self) -> Ordering {
 //         T::cmp(self, other)
@@ -1317,7 +1405,7 @@ impl<T: UniquePointee + Hash> Hash for UniquePointer<T> {
 
 // impl<T: Deref<Target: Hash> + Hash> Hash for UniquePointer<T>
 // where
-//     T: UniquePointee,
+//     T: Pointee,
 // {
 //     fn hash<H: Hasher>(&self, state: &mut H) {
 //         T::hash(self, state);

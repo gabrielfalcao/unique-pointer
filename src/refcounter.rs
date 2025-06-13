@@ -4,20 +4,27 @@ use std::convert::{AsMut, AsRef};
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Deref, DerefMut, SubAssign};
-/// `RefCounter` is a data-structure designed specifically for
-/// internal use in [`unique_pointer::UniquePointer`] allowing reference counts to be
-/// shared across clones of [`unique_pointer::UniquePointer`].
+/// [RefCounter](Self) is a data-structure designed specifically for
+/// internal use in [`UniquePointer`](crate::UniquePointer) allowing reference counts to be
+/// shared across clones of [`UniquePointer`](crate::UniquePointer).
 ///
-/// [`RefCounter`] uses relatively obscure rust techniques under
-/// the hood to allow writing in non-mut references in strategic
-/// occasions such as incrementing its reference count within its
-/// [`Clone`] implementation.
+/// [RefCounter](Self) uses relatively obscure rust techniques under the
+/// hood to allow writing in non-mut references in strategic occasions
+/// such as incrementing its reference count within its [`Clone`]
+/// implementation.
+///
+/// Finally, [`write`](RefCounter::write), [`reset`](RefCounter::reset),
+/// [`incr`](RefCounter::incr), [`incr_by`](RefCounter::incr_by),
+/// [`decr`](RefCounter::decr), [`decr_by`](RefCounter::decr_by) allows `RefCounter`
+/// instances to modify non-mut instances [`&RefCounter`](std#primitive.reference.html) of
+/// [RefCounter](Self) such that implementors don't need to resort to
+/// [`UniquePointer::unlock_reference`](crate::UniquePointer::unlock_reference).
 pub struct RefCounter {
     data: *mut usize,
 }
 
 impl RefCounter {
-    /// `new` creates a new [`RefCounter`] with its internal state
+    /// `new` creates a new [`RefCounter`](Self) with its internal state
     /// equivalent to zero.
     pub fn null() -> RefCounter {
         RefCounter {
@@ -25,43 +32,48 @@ impl RefCounter {
         }
     }
 
-    /// `new` creates a new [`RefCounter`] with the value 1
+    /// `new` creates a new [`RefCounter`](Self) with the value 1
     pub fn new() -> RefCounter {
         let mut ref_counter = RefCounter::null();
         ref_counter.incr();
         ref_counter
     }
 
-    /// `reset` resets a [`RefCounter`] to one which is the equivalent
-    /// state of a [`RefCounter::new`].
-    pub fn reset(&mut self) {
-        self.write(1);
+    /// `reset` resets a [`RefCounter`](Self) to one which is the equivalent
+    /// state of a [`new`](RefCounter::new).
+    pub fn reset(&self) {
+        let mut up = unsafe { self.meta_mut() };
+        up.write(1);
     }
 
     /// `incr` increments the `RefCounter` by one
-    pub fn incr(&mut self) {
-        self.incr_by(1);
+    pub fn incr(&self) {
+        let mut up = unsafe { self.meta_mut() };
+        up.incr_by(1);
     }
 
     /// `incr_by` increments the `RefCounter`
-    pub fn incr_by(&mut self, by: usize) {
-        self.write(self.read() + by);
+    pub fn incr_by(&self, by: usize) {
+        let mut up = unsafe { self.meta_mut() };
+        up.write(up.read() + by);
     }
 
     /// `decr` decrements the `RefCounter` by one
-    pub fn decr(&mut self) {
-        self.decr_by(1);
+    pub fn decr(&self) {
+        let mut up = unsafe { self.meta_mut() };
+        up.decr_by(1);
     }
 
     /// `decr_by` decrements the `RefCounter`
-    pub fn decr_by(&mut self, by: usize) {
-        let data = self.read();
+    pub fn decr_by(&self, by: usize) {
+        let mut up = unsafe { self.meta_mut() };
+        let data = up.read();
         if data >= by {
-            self.write(data - by);
+            up.write(data - by);
         }
     }
 
-    /// `drain` deallocates the memory used by a [`RefCounter`]
+    /// `drain` deallocates the memory used by a [`RefCounter`](Self)
     /// resetting its internals so as to behave as though it has been
     /// written `0`.
     pub fn drain(&mut self) {
@@ -100,7 +112,7 @@ impl RefCounter {
         up.write(1);
     }
 
-    /// `write` writes a [`usize`] into a [`RefCounter`] as opposed to
+    /// `write` writes a [`usize`] into a [`RefCounter`](Self) as opposed to
     /// incrementing or decrementing it.
     pub fn write(&mut self, data: usize) {
         self.alloc();
@@ -223,7 +235,7 @@ impl<'c> RefCounter {
         }
     }
 
-    /// `meta_mut_ptr` is an unsafe method that turns a [`*mut UniquePointer`] from a "self reference"
+    /// `meta_mut_ptr` is an unsafe method that turns a [`*mut UniquePointer`](crate::UniquePointer) from a "self reference"
     unsafe fn meta_mut_ptr(&self) -> *mut RefCounter {
         let ptr = self as *const RefCounter;
         unsafe {

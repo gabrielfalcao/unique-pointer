@@ -3,14 +3,14 @@ use unique_pointer::RefCounter;
 
 #[test]
 fn test_refcounter_incr_decr_read() {
-    let mut counter = RefCounter::new();
+    let counter = RefCounter::new();
     assert_equal!(counter.read(), 1);
     counter.incr();
     assert_equal!(counter.read(), 2);
     counter.incr();
     assert_equal!(counter.read(), 3);
     {
-        let mut clone = counter.clone();
+        let clone = counter.clone();
         clone.incr();
         assert_equal!(counter.read(), 4);
         assert_equal!(clone.read(), 4);
@@ -29,7 +29,7 @@ fn test_refcounter_incr_decr_read() {
 }
 #[test]
 fn test_refcounter_deref() {
-    let mut counter = RefCounter::new();
+    let counter = RefCounter::new();
     assert_equal!(counter.read(), 1);
     counter.incr();
     assert_equal!(counter.read(), 2);

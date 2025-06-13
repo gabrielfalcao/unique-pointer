@@ -25,19 +25,40 @@ pub struct Data<'t> {
     pub value: UniquePointer<Value<'t>>,
 }
 
-#[derive(Clone, Debug, Hash)]
-pub struct LinkedList<T: Debug> {
+#[derive(Debug, Hash)]
+pub struct LinkedList<T: Debug + Clone> {
     pub item: T,
     pub next: UniquePointer<LinkedList<T>>,
+    pub refs: usize,
 }
-impl<T: Debug> LinkedList<T> {
+impl<T: Debug + Clone> LinkedList<T> {
     pub fn new(item: T) -> LinkedList<T> {
         LinkedList {
             item,
             next: UniquePointer::null(),
+            refs: 1,
         }
     }
-
+    pub fn item(&self) -> T {
+        self.item.clone()
+    }
+    fn incr_ref(&mut self) {
+        self.refs += 1;
+    }
+    fn decr_ref(&mut self) {
+        if self.refs > 0 {
+            self.refs -= 1;
+        }
+    }
+    fn dealloc(&mut self) {
+        self.decr_ref();
+        if self.next.is_not_null() {
+            self.next.inner_mut().dealloc()
+        }
+        if self.refs == 0 {
+            self.next.drop_in_place();
+        }
+    }
     pub fn append(&mut self, value: T) -> LinkedList<T> {
         let next = LinkedList::new(value);
         self.next.write_ref(&next);
@@ -58,14 +79,34 @@ impl<T: Debug> LinkedList<T> {
         length
     }
 }
-
+impl<T: Debug + Clone> Clone for LinkedList<T> {
+    fn clone(&self) -> LinkedList<T> {
+        unsafe {
+            UniquePointer::<LinkedList<T>>::unlock_reference(self).incr_ref();
+        }
+        let mut list = LinkedList::new(self.item());
+        list.refs = self.refs;
+        list.next = self.next.clone();
+        list
+    }
+}
+impl<T: Debug + Clone> Drop for LinkedList<T> {
+    fn drop(&mut self) {
+        self.dealloc();
+    }
+}
 #[test]
 fn test_linked_list() {
     let mut a = LinkedList::new("a");
     let mut b = a.append("b");
     b.append("c");
 
+    assert_equal!(a.refs, 1);
     assert_equal!(a.len(), 3);
+    let z = a.clone();
+    assert_equal!(z.len(), 3);
+    assert_equal!(a.refs, 2);
+    assert_equal!(z.refs, 2);
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
