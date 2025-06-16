@@ -1,9 +1,9 @@
 use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-use std::convert::{AsMut, AsRef};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use std::convert::{AsMut, AsRef};
 
 use crate::{RefCounter, Pointee};
 

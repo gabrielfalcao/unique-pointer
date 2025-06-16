@@ -1,3 +1,4 @@
+#![allow(unused)]
 use cons_cell::{Cell, Value};
 use k9::assert_equal;
 
@@ -11,18 +12,18 @@ fn test_cell_from_u8() {
 fn test_cell_from_str() {
     let cell = Cell::from("head");
     let head = cell.head();
-    assert_equal!(head, Some(Value::from("head")));
+    assert_equal!(head, Some(Value::symbol("head")));
 }
 
 #[test]
 fn test_cell_from_u64() {
     let cell = Cell::from(0xBEEFu64);
-    assert_equal!(cell.head(), Some(Value::UInt(0xBEEF)));
+    assert_equal!(cell.head(), Some(Value::UnsignedInteger(0xBEEFu64.into())));
 }
 #[test]
 fn test_cell_from_i64() {
     let cell = Cell::from(47i64);
-    assert_equal!(cell.head(), Some(Value::Int(47)));
+    assert_equal!(cell.head(), Some(Value::Integer(47i64.into())));
 }
 
 #[test]
