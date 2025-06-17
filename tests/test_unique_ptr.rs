@@ -529,6 +529,14 @@ fn test_unique_pointer_copy_from_ref_deref_outer_data_structure<'t>() {
     assert_equal!(data_ptr.value.as_ref(), Some(&Value::from("string")));
     assert_equal!(data_ptr.value.as_mut(), Some(&mut Value::from("string")));
 }
+#[test]
+fn test_unique_pointer_try_read<'t>() {
+    let null = UniquePointer::<Value<'t>>::null();
+    assert_equal!(null.try_read(), None);
+
+    let non_null = UniquePointer::<Value<'t>>::from(Value::from("non-null"));
+    assert_equal!(non_null.try_read(), Some(Value::from("non-null")));
+}
 
 #[test]
 fn test_dealloc<'t>() {

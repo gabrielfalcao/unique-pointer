@@ -915,6 +915,9 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
 
     /// reads data from memory `UniquePointer`
     pub fn try_read(&self) -> Option<T> {
+        if self.is_null() {
+            return None
+        }
         if self.is_written() {
             Some(self.read())
         } else {
