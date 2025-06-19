@@ -1,11 +1,15 @@
 use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use std::convert::{AsMut, AsRef};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
-use std::convert::{AsMut, AsRef};
 
-use crate::{RefCounter, Pointee};
+use crate::{Pointee, RefCounter};
+
+pub const ISACOPY: u8 = 0b0001;
+pub const ISALLOC: u8 = 0b0010;
+pub const WRITTEN: u8 = 0b0100;
 
 /// `UniquePointer` is an experimental data structure that makes
 /// extensive use of unsafe rust to provide a shared pointer
@@ -464,11 +468,8 @@ pub struct UniquePointer<T: Pointee> {
     mut_addr: usize,
     mut_ptr: *mut T,
     refs: RefCounter,
-    alloc: bool,
-    is_copy: bool,
-    written: bool,
+    flags: u8,
 }
-
 impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// creates a NULL `UniquePointer` ready to be written via [write].
     pub fn null() -> UniquePointer<T> {
@@ -476,9 +477,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             mut_addr: 0,
             mut_ptr: std::ptr::null_mut::<T>(),
             refs: RefCounter::new(),
-            written: false,
-            alloc: false,
-            is_copy: false,
+            flags: 0,
         }
     }
 
@@ -508,7 +507,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// [dealloc].
     fn copy() -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
-        up.is_copy = true;
+        up.flags = up.flags | (ISACOPY);
         up
     }
 
@@ -587,8 +586,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
         let mut back_node = UniquePointer::<T>::null();
         back_node.set_mut_ptr(self.mut_ptr, false);
         back_node.refs = self.refs.clone();
-        back_node.alloc = self.alloc;
-        back_node.written = self.written;
+        back_node.flags = self.flags;
         back_node
     }
     /// `unlock_reference` extends the lifetime of `&T` to `&'t T` and
@@ -743,9 +741,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             mut_addr: addr,
             mut_ptr: ptr,
             refs: refs,
-            written: true,
-            alloc: true,
-            is_copy: true,
+            flags: (ISACOPY | ISALLOC | WRITTEN),
         }
     }
 
@@ -786,26 +782,26 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// to negating a call to [`UniquePointer::is_copy`] such that the
     /// negation is less likely to be clearly visible.
     pub fn is_not_copy(&self) -> bool {
-        !self.is_copy
+        !self.is_copy()
     }
 
     /// returns true if the `UniquePointer` is not NULL
     /// and is not flagged as a copy, meaning it can be deallocated
     /// without concern for double-free.
     pub fn can_dealloc(&self) -> bool {
-        self.alloc && self.is_not_copy() && self.is_not_null()
+        ((self.flags & ISALLOC) == ISALLOC) && self.is_not_copy() && self.is_not_null()
     }
 
     /// returns true if the `UniquePointer` has been
     /// allocated and therefore is no longer a NULL pointer.
     pub fn is_allocated(&self) -> bool {
-        let is_allocated = self.is_not_null() && self.alloc;
+        let is_allocated = ((self.flags & ISALLOC) == ISALLOC) && self.is_not_null();
         is_allocated
     }
 
     /// returns true if the `UniquePointer` has been written to
     pub fn is_written(&self) -> bool {
-        let is_written = self.is_allocated() && self.written;
+        let is_written = ((self.flags & WRITTEN) == WRITTEN) && self.is_allocated();
         is_written
     }
 
@@ -814,7 +810,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// "hard-deallocating" said `UniquePointer` does not incur a
     /// double-free.
     pub fn is_copy(&self) -> bool {
-        self.is_copy
+        ((self.flags & ISACOPY) == ISACOPY)
     }
 
     /// allocates memory in a null `UniquePointer`
@@ -832,7 +828,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             ptr as *mut T
         };
         self.set_mut_ptr(mut_ptr, false);
-        self.alloc = true;
+        self.flags |= ISALLOC;
     }
 
     /// compatibility API to a raw mut pointer's [`pointer::cast_mut`].
@@ -862,7 +858,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             self.mut_ptr.write(data);
         }
 
-        self.written = true;
+        self.flags |= (WRITTEN);
     }
 
     /// takes a mutable reference to a value and
@@ -873,7 +869,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             let ptr = data as *mut T;
             ptr.copy_to(self.mut_ptr, 1);
         };
-        self.written = true;
+        self.flags |= (WRITTEN);
     }
 
     /// takes a read-only reference to a value and
@@ -884,7 +880,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             let ptr = data as *const T;
             ptr.copy_to(self.mut_ptr, 1);
         };
-        self.written = true;
+        self.flags |= (WRITTEN);
     }
 
     /// swaps the memory addresses storing `T` with other `UniquePointer`
@@ -916,7 +912,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// reads data from memory `UniquePointer`
     pub fn try_read(&self) -> Option<T> {
         if self.is_null() {
-            return None
+            return None;
         }
         if self.is_written() {
             Some(self.read())
@@ -999,8 +995,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     fn set_mut_ptr(&mut self, ptr: *mut T, dealloc: bool) {
         if ptr.is_null() {
             if dealloc && self.is_allocated() {
-                self.alloc = false;
-                self.written = false;
+                self.flags = 0;
                 self.mut_addr = 0;
                 let layout = Layout::new::<T>();
                 unsafe {
@@ -1040,8 +1035,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
             self.set_mut_ptr(std::ptr::null_mut::<T>(), false);
             self.refs.drain();
         }
-        self.alloc = false;
-        self.written = false;
+        self.flags = 0;
     }
 
     /// utility method to extend the lifetime
@@ -1235,8 +1229,7 @@ where
         let mut clone = UniquePointer::<T>::copy();
         clone.set_mut_ptr(self.mut_ptr, false);
         clone.refs = self.refs.clone();
-        clone.alloc = self.alloc;
-        clone.written = self.written;
+        clone.flags = self.flags;
         clone
     }
 }
@@ -1269,12 +1262,12 @@ where
                 } else {
                     [
                         format!("[refs={}]", self.refs),
-                        format!("[alloc={}]", self.alloc),
-                        format!("[written={}]", self.written),
+                        format!("[alloc={}]", self.is_allocated()),
+                        format!("[written={}]", self.is_written()),
                     ]
                     .join("")
                 },
-                format!("[is_copy={}]", self.is_copy),
+                format!("[is_copy={}]", self.is_copy()),
             ]
             .join("")
         )
