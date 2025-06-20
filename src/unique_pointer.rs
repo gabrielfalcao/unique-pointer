@@ -960,6 +960,102 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
         }
     }
 
+    /// Returns a `Box<T>` without dropping T, panics if [Self] is
+    /// null.
+    ///
+    /// See [Self::into_box] for a version that returns
+    /// [`Option<Box<T>>`].
+    ///
+    /// Example boxing a type that does not implement Clone
+    ///
+    /// ```
+    /// use unique_pointer::UniquePointer;
+    /// use std::collections::BTreeMap;
+    /// use std::fmt::{Display, Debug, Formatter};
+    ///
+    /// pub trait Matcher {
+    ///     fn to_str(&self) -> String;
+    ///     fn to_dbg(&self) -> String {
+    ///         format!("{:#?}", self.to_str())
+    ///     }
+    /// }
+    ///
+    /// impl Debug for dyn Matcher {
+    ///     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    ///         write!(f, "{}", self.to_str())
+    ///     }
+    /// }
+    ///
+    /// #[derive(Debug)]
+    /// pub enum Match {
+    ///     Literal(String),
+    ///     Rule(Box<Rule>),
+    ///     Matcher(Box<dyn Matcher>),
+    ///     Sequence(Vec<Box<dyn Matcher>>),
+    /// }
+    ///
+    /// pub(crate) static mut RULES: BTreeMap<&'static str, UniquePointer<Match>> = BTreeMap::new();
+    ///
+    /// #[allow(static_mut_refs)]
+    /// pub(crate) fn register_match<T: Display>(string: T, r#match: Match) -> Match {
+    ///     unsafe {
+    ///         RULES.insert(string.to_string().leak(), UniquePointer::from_ref(&r#match));
+    ///     }
+    ///     r#match
+    /// }
+    /// impl From<&str> for Match {
+    ///     fn from(string: &str) -> Match {
+    ///         register_match(string, Match::Literal(string.to_string()))
+    ///     }
+    /// }
+    /// pub struct Rule {
+    ///     sym: String,
+    ///     matcher: Match,
+    /// }
+    ///
+    /// impl Rule {
+    ///     pub fn new<S: ToString>(symbol: S, matcher: impl Into<Match>) -> Rule {
+    ///         Rule {
+    ///             sym: symbol.to_string(),
+    ///             matcher: matcher.into(),
+    ///         }
+    ///     }
+    ///     pub fn symbol(&self) -> &str {
+    ///         self.sym.as_ref()
+    ///     }
+    /// }
+    /// impl Debug for Rule {
+    ///     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    ///         write!(f, "{}", &self.sym)
+    ///     }
+    /// }
+    /// impl From<Rule> for Match {
+    ///     fn from(rule: Rule) -> Match {
+    ///         let rule = UniquePointer::from(rule);
+    ///         let symbol = rule.inner_ref().symbol();
+    ///         register_match(symbol, Match::Rule(Box::new(rule.read())))
+    ///     }
+    /// }
+    /// ```
+    pub fn into_box_unchecked(&self) -> Box<T> {
+        if self.is_null() {
+            panic!("NULL POINTER: {:#?}", self);
+        }
+        Box::new(self.read())
+    }
+
+    /// Returns a `Box<T>` without dropping T, panics if [Self] is
+    /// null.
+    ///
+    /// See [Self::into_box] for a version that returns
+    /// [`Option<Box<T>>`].
+    pub fn into_box(&self) -> Option<Box<T>> {
+        if self.is_null() {
+            return None;
+        }
+        Some(self.into_box_unchecked())
+    }
+
     /// deallocates a `UniquePointer`.
     ///
     /// The [soft] boolean argument indicates whether the
