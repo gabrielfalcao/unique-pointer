@@ -834,7 +834,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// compatibility API to a raw mut pointer's [`pointer::cast_mut`].
     pub fn cast_mut(&self) -> *mut T {
         if self.is_null() {
-            panic!("{:#?}", self);
+            panic!("NULL POINTER: {:#?}", self);
         } else {
             self.mut_ptr
         }
@@ -843,7 +843,7 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// compatibility API to a raw const pointer's [`pointer::cast_const`].
     pub fn cast_const(&self) -> *const T {
         if self.is_null() {
-            panic!("{:#?}", self);
+            panic!("NULL POINTER: {:#?}", self);
         } else {
             self.mut_ptr.cast_const()
         }
@@ -902,6 +902,9 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     /// reads data from memory `UniquePointer`. Panics if
     /// the pointer is either null or allocated but never written to.
     pub fn read(&self) -> T {
+        if self.is_null() {
+            panic!("NULL POINTER: {:#?}", self);
+        }
         if !self.is_written() {
             panic!("{:#?} not written", self);
         }
