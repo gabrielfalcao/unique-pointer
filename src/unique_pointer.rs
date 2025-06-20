@@ -1002,16 +1002,11 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     ///     }
     ///     r#match
     /// }
-    /// impl From<&str> for Match {
-    ///     fn from(string: &str) -> Match {
-    ///         register_match(string, Match::Literal(string.to_string()))
-    ///     }
-    /// }
+    /// #[derive(Debug)]
     /// pub struct Rule {
     ///     sym: String,
     ///     matcher: Match,
     /// }
-    ///
     /// impl Rule {
     ///     pub fn new<S: ToString>(symbol: S, matcher: impl Into<Match>) -> Rule {
     ///         Rule {
@@ -1023,16 +1018,11 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
     ///         self.sym.as_ref()
     ///     }
     /// }
-    /// impl Debug for Rule {
-    ///     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-    ///         write!(f, "{}", &self.sym)
-    ///     }
-    /// }
     /// impl From<Rule> for Match {
     ///     fn from(rule: Rule) -> Match {
     ///         let rule = UniquePointer::from(rule);
     ///         let symbol = rule.inner_ref().symbol();
-    ///         register_match(symbol, Match::Rule(Box::new(rule.read())))
+    ///         register_match(symbol, Match::Rule(rule.into_box_unchecked()))
     ///     }
     /// }
     /// ```
