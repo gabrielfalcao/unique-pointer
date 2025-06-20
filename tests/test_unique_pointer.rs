@@ -560,6 +560,25 @@ fn test_dealloc<'t>() {
     assert_equal!(up.is_null(), true);
 }
 
+#[test]
+fn test_hash<'t>() {
+    use std::collections::BTreeMap;
+    let mut items = BTreeMap::<UniquePointer<String>, UniquePointer<Value<'t>>>::new();
+    items.insert(
+        UniquePointer::from("1".to_string()),
+        UniquePointer::from(Value::from("one")),
+    );
+    items.insert(
+        UniquePointer::from("2".to_string()),
+        UniquePointer::from(Value::from("two")),
+    );
+    items.insert(
+        UniquePointer::from("3".to_string()),
+        UniquePointer::from(Value::from("three")),
+    );
+
+
+}
 #[macro_export]
 macro_rules! assert_nonzero {
     ($value:expr, $desc:literal) => {{

@@ -1325,9 +1325,20 @@ impl<T: Pointee + Ord> Ord for UniquePointer<T> {
     }
 }
 
-impl<T: Pointee + Hash> Hash for UniquePointer<T> {
+impl<T: Pointee> Hash for UniquePointer<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.inner_ref().hash(state)
+        let size = std::mem::size_of::<T>();
+        let mut ptr = self.mut_ptr as *mut u8;
+        let bs = std::mem::size_of::<u8>();
+        let end = unsafe { ptr.add(size) };
+        while ptr < end {
+            let mut byte = 0u8;
+            unsafe {
+                ptr.copy_to(&raw mut byte, bs);
+            }
+            byte.hash(state);
+            ptr = unsafe { ptr.add(bs) };
+        }
     }
 }
 
