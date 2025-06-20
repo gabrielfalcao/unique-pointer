@@ -959,10 +959,10 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
         }
     }
 
-    /// Returns a `Box<T>` without dropping T, panics if [Self] is
-    /// null.
+    /// Returns a `Box<T>` without dropping T, panics if
+    /// [UniquePointer](Self) points to null.
     ///
-    /// See [Self::into_box] for a version that returns
+    /// See [into_box](Self::into_box) for a version that returns
     /// [`Option<Box<T>>`].
     ///
     /// Example boxing a type that does not implement Clone
@@ -1043,11 +1043,11 @@ impl<'c, T: Pointee + 'c> UniquePointer<T> {
         Box::new(self.read())
     }
 
-    /// Returns a `Box<T>` without dropping T, panics if [Self] is
-    /// null.
+    /// Returns a `Option<Box<T>>` without dropping T, returns `None`
+    /// if pointing to null.
     ///
-    /// See [Self::into_box] for a version that returns
-    /// [`Option<Box<T>>`].
+    /// See [into_box_unchecked](Self::into_box_unchecked) for a
+    /// version that returns [`Box<T>`].
     pub fn into_box(&self) -> Option<Box<T>> {
         if self.is_null() {
             return None;
