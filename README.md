@@ -72,7 +72,7 @@ fn test_linked_list() {
 
 - lisp ["cons"](https://en.wikipedia.org/wiki/Cons) cell
   - [browse github](https://github.com/gabrielfalcao/unique-pointer/tree/HEAD/examples/lisp-cons-cell)
-  - [cell implementation](https://github.com/gabrielfalcao/unique-pointer/tree/HEAD/examples/lisp-cons-cell/src/cell.rs)
-  - [const/car/cdr implementation](https://github.com/gabrielfalcao/unique-pointer/tree/HEAD/examples/lisp-cons-cell/src/cons.rs)
+  - [cell implementation](https://github.com/gabrielfalcao/unique-pointer/blob/83b805b655fb3bd2642714a7eb214da1b71ecc4c/examples/lisp-cons-cell/src/cell.rs#L20-L262)
+  - [cons/car/cdr implementation](https://github.com/gabrielfalcao/unique-pointer/blob/83b805b655fb3bd2642714a7eb214da1b71ecc4c/examples/lisp-cons-cell/src/cons.rs#L3-L63)
   - [cell tests](https://github.com/gabrielfalcao/unique-pointer/tree/HEAD/examples/lisp-cons-cell/tests/test_cell.rs)
   - [cons/car/cdr tests](https://github.com/gabrielfalcao/unique-pointer/tree/HEAD/examples/lisp-cons-cell/tests/test_cons.rs)
