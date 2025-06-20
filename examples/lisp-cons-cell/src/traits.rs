@@ -3,8 +3,8 @@ use std::cmp::{Eq, Ord, PartialEq, PartialOrd};
 use std::fmt::{Debug, Display};
 
 use crate::{
-    impl_as_number, impl_quotable_false, impl_quotable_false_t,
-    impl_quotable_false_tn, impl_quotable_string,
+    impl_as_number, impl_quotable_false, impl_quotable_false_t, impl_quotable_false_tn,
+    impl_quotable_string,
 };
 
 #[rustfmt::skip]
@@ -92,9 +92,7 @@ impl Quotable for Option<String> {
 //     }
 // }
 
-pub trait AsNumber<T>:
-    Sized + PartialOrd + PartialEq + Clone + Debug + Display
-{
+pub trait AsNumber<T>: Sized + PartialOrd + PartialEq + Clone + Debug + Display {
     fn as_number(&self) -> T;
 }
 

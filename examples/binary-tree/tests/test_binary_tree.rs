@@ -188,10 +188,23 @@ impl<'t> MitOpenCourseWare6006Tree<'t> {
         assert_equal!(node_f.parent().unwrap().parent(), Some(&node_b));
         ///
         ///                                                                                        ///
-        assert_equal!(node_f.parent().unwrap().parent().unwrap().parent(), Some(&node_a));
+        assert_equal!(
+            node_f.parent().unwrap().parent().unwrap().parent(),
+            Some(&node_a)
+        );
         ///
         ///                                                                                        ///
-        assert_equal!(node_f.parent().unwrap().parent().unwrap().parent().unwrap().parent(), None);
+        assert_equal!(
+            node_f
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent(),
+            None
+        );
         ///
         ///                                                                                        ///
         assert_equal!(node_a.refs(), 9);
@@ -236,7 +249,9 @@ impl<'t> MitOpenCourseWare6006Tree<'t> {
         tree.node_e.dealloc();
         tree.node_f.dealloc();
 
-        unsafe { std::mem::transmute::<MitOpenCourseWare6006Tree, MitOpenCourseWare6006Tree<'t>>(tree) }
+        unsafe {
+            std::mem::transmute::<MitOpenCourseWare6006Tree, MitOpenCourseWare6006Tree<'t>>(tree)
+        }
     }
 }
 #[test]

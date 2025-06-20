@@ -1,5 +1,5 @@
-use k9::assert_equal;
 use cons_cell::{Cell, Value};
+use k9::assert_equal;
 
 #[test]
 fn test_cell_into_iterator() {

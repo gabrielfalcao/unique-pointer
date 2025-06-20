@@ -576,8 +576,6 @@ fn test_hash<'t>() {
         UniquePointer::from("3".to_string()),
         UniquePointer::from(Value::from("three")),
     );
-
-
 }
 #[macro_export]
 macro_rules! assert_nonzero {

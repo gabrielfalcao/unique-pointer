@@ -1,6 +1,6 @@
 #![allow(unused)]
-use k9::assert_equal;
 use cons_cell::{Cell, Value};
+use k9::assert_equal;
 
 #[test]
 fn test_iterator() {
@@ -9,7 +9,9 @@ fn test_iterator() {
     head.add(&mut Cell::new(Value::symbol("x")));
 
     assert_equal!(
-        head.into_iter().map(|value| value.to_string()).collect::<Vec<String>>(),
+        head.into_iter()
+            .map(|value| value.to_string())
+            .collect::<Vec<String>>(),
         vec![r#""head""#, "10", "x"]
     );
 }

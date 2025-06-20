@@ -1,11 +1,10 @@
+use crate::{Pointee, RefCounter};
 use std::alloc::Layout;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::{AsMut, AsRef};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
-
-use crate::{Pointee, RefCounter};
 
 pub const ISACOPY: u8 = 0b0001;
 pub const ISALLOC: u8 = 0b0010;

@@ -1,6 +1,4 @@
-use cons_cell::{
-    assert_display_equal, Cell, Value,
-};
+use cons_cell::{assert_display_equal, Cell, Value};
 
 #[test]
 fn test_nil() {
@@ -36,10 +34,7 @@ fn test_integer() {
 }
 #[test]
 fn test_float() {
-    assert_display_equal!(
-        Value::float(2.718281828459045),
-        "2.718281828459045"
-    );
+    assert_display_equal!(Value::float(2.718281828459045), "2.718281828459045");
 }
 #[test]
 fn test_list() {

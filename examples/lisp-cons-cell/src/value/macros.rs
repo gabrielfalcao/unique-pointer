@@ -24,13 +24,11 @@ macro_rules! impl_number_type {
         impl $name {
             pub fn to_bytes(&self) -> Vec<u8> {
                 let mut prefix = [0u8; 4];
-                let type_bytes =
-                    $crate::$name::type_name().as_bytes().to_vec();
+                let type_bytes = $crate::$name::type_name().as_bytes().to_vec();
                 if type_bytes.len() == 4 {
                     prefix.copy_from_slice(&type_bytes[..]);
                 } else {
-                    prefix[4 - type_bytes.len()..]
-                        .copy_from_slice(&type_bytes[..]);
+                    prefix[4 - type_bytes.len()..].copy_from_slice(&type_bytes[..]);
                 }
                 let mut prefix = prefix.to_vec();
                 prefix.extend(self.inner().to_be_bytes());

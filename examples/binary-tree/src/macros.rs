@@ -12,28 +12,23 @@ macro_rules! location {
     }};
     (begin) => {
         $crate::tag!(sexprs_util::color::auto(
-            [
-                format!("in function"),
-                $crate::location!()
-            ]
-            .join(" ")
+            [format!("in function"), $crate::location!()].join(" ")
         ))
     };
     (end) => {
-        $crate::tag!(
-            [
-                sexprs_util::color::auto(format!("from function")),
-                $crate::location!()
-            ]
-            .join(" ")
-        )
+        $crate::tag!([
+            sexprs_util::color::auto(format!("from function")),
+            $crate::location!()
+        ]
+        .join(" "))
     };
     (unexpected) => {
         [
             sexprs_util::color::fg(format!("<unexpected branch in function"), 160),
             $crate::location!(),
             sexprs_util::color::fg(format!(">"), 160),
-        ].join(" ")
+        ]
+        .join(" ")
     };
 }
 #[macro_export]
@@ -51,7 +46,10 @@ macro_rules! filename {
                 .collect::<Vec<String>>();
             (parts, last)
         } else {
-            (Vec::<String>::new(), sexprs_util::color::auto(parts[0].to_string()))
+            (
+                Vec::<String>::new(),
+                sexprs_util::color::auto(parts[0].to_string()),
+            )
         };
         if folder.len() > 1 {
             format!(
@@ -262,15 +260,12 @@ macro_rules! impl_error {
                     if self.callers.len() > 0 {
                         format!(
                             "\n\nStacktrace:\n{}\n",
-                            [
-                                self.previous_as_debug(),
-                                self.callers_to_string(4)
-                            ]
-                            .iter()
-                            .filter(|s| !s.trim().is_empty())
-                            .map(String::from)
-                            .collect::<Vec<String>>()
-                            .join("\n")
+                            [self.previous_as_debug(), self.callers_to_string(4)]
+                                .iter()
+                                .filter(|s| !s.trim().is_empty())
+                                .map(String::from)
+                                .collect::<Vec<String>>()
+                                .join("\n")
                         )
                     } else {
                         String::new()
@@ -289,9 +284,7 @@ macro_rules! impl_error {
         macro_rules! map_call_to_result {
             ($result: expr) => {
                 use sexprs_util::Traceback;
-                $result.map_err(|error| {
-                    sexprs_util::with_caller!(crate::Error::from(error))
-                })
+                $result.map_err(|error| sexprs_util::with_caller!(crate::Error::from(error)))
             };
         }
     };

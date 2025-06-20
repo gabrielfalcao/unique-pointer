@@ -1,5 +1,5 @@
-use k9::assert_equal;
 use cons_cell::{Cell, Value};
+use k9::assert_equal;
 
 #[test]
 fn test_value_list_into_iterator() {
@@ -120,7 +120,6 @@ fn test_value_list_extend_value_list() {
         })
     );
 }
-
 
 #[test]
 fn test_value_list_extend_cell() {

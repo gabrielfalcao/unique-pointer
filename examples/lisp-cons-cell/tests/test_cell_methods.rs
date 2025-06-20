@@ -43,7 +43,10 @@ fn test_add_and_pop() {
 
     head.add(&cell);
 
-    assert_equal!(head.values(), vec![Value::from("head"), Value::from("cell")]);
+    assert_equal!(
+        head.values(),
+        vec![Value::from("head"), Value::from("cell")]
+    );
     assert_equal!(head.len(), 2);
 
     assert_equal!(head.pop(), true);
@@ -75,17 +78,23 @@ fn test_add_when_tail_is_not_necessarily_null() {
     assert_equal!(head.len(), 1);
 
     head.add(&cell);
-    assert_equal!(head.values(), vec![Value::from("head"), Value::from("cell")]);
+    assert_equal!(
+        head.values(),
+        vec![Value::from("head"), Value::from("cell")]
+    );
     assert_equal!(head.len(), 2);
 
     head.add(&tail);
     assert_equal!(
         head.values(),
-        vec![Value::from("head"), Value::from("cell"), Value::from("tail")]
+        vec![
+            Value::from("head"),
+            Value::from("cell"),
+            Value::from("tail")
+        ]
     );
     assert_equal!(head.len(), 3);
 }
-
 
 #[test]
 fn test_add_when_tail_is_null() {
@@ -97,7 +106,10 @@ fn test_add_when_tail_is_null() {
 
     head.add(&cell);
 
-    assert_equal!(head.values(), vec![Value::from("head"), Value::from("cell")]);
+    assert_equal!(
+        head.values(),
+        vec![Value::from("head"), Value::from("cell")]
+    );
     assert_equal!(head.len(), 2);
 
     let tail = Cell::new(Value::from("tail"));
@@ -111,7 +123,11 @@ fn test_add_when_tail_is_null() {
 
     assert_equal!(
         head.values(),
-        vec![Value::from("head"), Value::from("cell"), Value::from("tail")]
+        vec![
+            Value::from("head"),
+            Value::from("cell"),
+            Value::from("tail")
+        ]
     );
     assert_equal!(head.len(), 3);
     assert_equal!(tail.values(), vec![Value::from("tail")]);

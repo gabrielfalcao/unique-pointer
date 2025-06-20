@@ -23,12 +23,10 @@ fn value_option_ref_equals() {
     assert_equal!(Some(&Value::from(7i64)), Some(&Value::from(7i64)));
 }
 
-
 #[test]
 fn value_symbol() {
     assert_equal!(Value::symbol("sym"), Value::symbol("sym"));
 }
-
 
 #[test]
 fn value_integer() {

@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::convert::{AsMut, AsRef};
 
-
 #[derive(Clone, PartialOrd, Ord, Default, PartialEq, Eq, Hash)]
 pub enum Value<'c> {
     #[default]

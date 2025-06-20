@@ -41,21 +41,13 @@ fn test_list_quoted_sexprs() {
     );
     // '(x y z) '((x y z) 3)
     assert_display_equal!(
-        Value::quoted_list([
-            Value::symbol("x"),
-            Value::symbol("y"),
-            Value::symbol("z"),
-        ]),
+        Value::quoted_list([Value::symbol("x"), Value::symbol("y"), Value::symbol("z"),]),
         "'(x y z)"
     );
     // (list '(x y z) 3) => '('(x y z) 3)
     assert_display_equal!(
         list([
-            Value::quoted_list([
-                Value::symbol("x"),
-                Value::symbol("y"),
-                Value::symbol("z"),
-            ]),
+            Value::quoted_list([Value::symbol("x"), Value::symbol("y"), Value::symbol("z"),]),
             Value::integer(3)
         ]),
         "('(x y z) 3)"

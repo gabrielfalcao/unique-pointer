@@ -1,14 +1,20 @@
 use std::borrow::Cow;
 
+use cons_cell::{assert_display_equal, Symbol, Value};
 use k9::assert_equal;
-use cons_cell::{assert_display_equal, Value, Symbol};
 
 #[test]
 fn value_from_symbol() {
     assert_equal!(Value::from(Symbol::new("test")), Value::symbol("test"));
-    assert_equal!(Value::from(Symbol::new("test").quote()), Value::quoted_symbol("test"));
+    assert_equal!(
+        Value::from(Symbol::new("test").quote()),
+        Value::quoted_symbol("test")
+    );
     assert_equal!(Value::from(&Symbol::new("test")), Value::symbol("test"));
-    assert_equal!(Value::from(&Symbol::new("test").quote()), Value::quoted_symbol("test"));
+    assert_equal!(
+        Value::from(&Symbol::new("test").quote()),
+        Value::quoted_symbol("test")
+    );
 }
 #[test]
 fn value_from_bool() {

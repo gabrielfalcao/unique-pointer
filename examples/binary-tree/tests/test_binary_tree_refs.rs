@@ -190,10 +190,23 @@ impl<'c, 't> MitOpenCourseWare6006Tree<'c, 't> {
         assert_equal!(node_f.parent().unwrap().parent(), Some(&node_b));
         ///
         ///                                                                                        ///
-        assert_equal!(node_f.parent().unwrap().parent().unwrap().parent(), Some(&node_a));
+        assert_equal!(
+            node_f.parent().unwrap().parent().unwrap().parent(),
+            Some(&node_a)
+        );
         ///
         ///                                                                                        ///
-        assert_equal!(node_f.parent().unwrap().parent().unwrap().parent().unwrap().parent(), None);
+        assert_equal!(
+            node_f
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent(),
+            None
+        );
         ///
         ///                                                                                        ///
         assert_equal!(node_a.refs(), 9);
@@ -235,7 +248,11 @@ impl<'c, 't> MitOpenCourseWare6006Tree<'c, 't> {
         // Then node D has 4 references
         assert_equal!(tree.node_d.refs(), 4);
 
-        unsafe { std::mem::transmute::<MitOpenCourseWare6006Tree, MitOpenCourseWare6006Tree<'c, 't>>(tree) }
+        unsafe {
+            std::mem::transmute::<MitOpenCourseWare6006Tree, MitOpenCourseWare6006Tree<'c, 't>>(
+                tree,
+            )
+        }
     }
 }
 #[test]
