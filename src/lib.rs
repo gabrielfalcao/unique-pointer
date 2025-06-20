@@ -6,6 +6,14 @@
 //! throughout the runtime of a rust program as transparently as
 //! possible.
 //!
+//!
+//! # Crate Features
+//!
+//! ### `allow-no-debug`
+//!
+//! > Permits using `UniquePointer<T>` where `T` does not implement `std::fmt::Debug`
+//!
+//!
 //! # Binary Tree Example
 //!
 //! ### Binary Tree Implementation

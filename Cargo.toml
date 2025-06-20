@@ -16,7 +16,7 @@ cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
 
 [features]
-debug = []
+allow-no-debug = []
 null-check = []
 
 [lib]

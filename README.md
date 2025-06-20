@@ -11,6 +11,16 @@ linked-lists and binary trees in rust while not spending much time
 tinkering with rust lifetimes.
 
 
+## Crate Features
+
+### `allow-no-debug`
+
+Permits using `UniquePointer<T>` where `T` does not implement `std::fmt::Debug`
+
+```
+cargo add unique-pointer --allow-no-debug
+```
+
 ## Linked List Example
 
 ```rust

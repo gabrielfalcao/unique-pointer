@@ -1242,7 +1242,7 @@ impl<T: Pointee> UniquePointer<T> {
 impl<T: Pointee> AsRef<T> for UniquePointer<T> {
     fn as_ref(&self) -> &T {
         if self.is_null() {
-            panic!("null pointer: {:#?}", self);
+            panic!("NULL POINTER: {:#?}", self);
         }
         self.inner_ref()
     }
@@ -1250,7 +1250,7 @@ impl<T: Pointee> AsRef<T> for UniquePointer<T> {
 impl<T: Pointee> AsMut<T> for UniquePointer<T> {
     fn as_mut(&mut self) -> &mut T {
         if self.is_null() {
-            panic!("null pointer: {:#?}", self);
+            panic!("NULL POINTER: {:#?}", self);
         }
         self.inner_mut()
     }
@@ -1270,35 +1270,23 @@ impl<T: Pointee> DerefMut for UniquePointer<T> {
     }
 }
 
-impl<T: Pointee> Drop for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> Drop for UniquePointer<T> {
     fn drop(&mut self) {
         self.drop_in_place();
     }
 }
 
-impl<T: Pointee> From<&T> for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> From<&T> for UniquePointer<T> {
     fn from(data: &T) -> UniquePointer<T> {
         UniquePointer::<T>::from_ref(data)
     }
 }
-impl<T: Pointee> From<&mut T> for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> From<&mut T> for UniquePointer<T> {
     fn from(data: &mut T) -> UniquePointer<T> {
         UniquePointer::<T>::from_ref_mut(data)
     }
 }
-impl<T: Pointee> From<T> for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> From<T> for UniquePointer<T> {
     fn from(data: T) -> UniquePointer<T> {
         let mut up = UniquePointer::<T>::null();
         up.write(data);
@@ -1308,10 +1296,7 @@ where
 /// The [Clone] implementation of `UniquePointer` is special
 /// because it flags cloned values as clones such that a double-free
 /// doesn not occur.
-impl<T: Pointee> Clone for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> Clone for UniquePointer<T> {
     fn clone(&self) -> UniquePointer<T> {
         self.incr_ref();
         let mut clone = UniquePointer::<T>::copy();
@@ -1322,19 +1307,13 @@ where
     }
 }
 
-impl<T: Pointee> Pointer for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> Pointer for UniquePointer<T> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{:016x}", self.addr())
     }
 }
 
-impl<T: Pointee> Debug for UniquePointer<T>
-where
-    T: Debug,
-{
+impl<T: Pointee> Debug for UniquePointer<T> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
@@ -1343,7 +1322,10 @@ where
                 format!("{:016x}", self.addr()),
                 if self.is_not_null() {
                     [
+                        #[cfg(not(feature = "allow-no-debug"))]
                         format!("[src={:#?}]", self.inner_ref()),
+                        #[cfg(feature = "allow-no-debug")]
+                        format!("[src={:p}]", self.inner_ref()),
                         format!("[refs={}]", self.refs),
                     ]
                     .join("")
